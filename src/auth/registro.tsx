@@ -64,7 +64,12 @@ const Admin: React.FC = () => {
         setLoading(true); // Activar el icono de carga
     
         try {
-            // Llamar a la función registerParent sin almacenar la respuesta
+            // Validar datos antes de enviar
+            if (!parentData.nombre || !parentData.apellido || !parentData.correo || !parentData.telefono || !parentData.contraseña) {
+                throw new Error("Por favor, completa todos los campos obligatorios.");
+            }
+    
+            // Llamar a la función registerParent
             await registerParent(
                 parentData.nombre,
                 parentData.apellido,
@@ -73,17 +78,21 @@ const Admin: React.FC = () => {
                 parentData.contraseña
             );
     
-            // Guardar datos en localStorage
+            // Guardar datos en localStorage (excepto la contraseña por seguridad)
             localStorage.setItem('userEmail', parentData.correo);
-            localStorage.setItem('userPassword', parentData.contraseña);
             localStorage.setItem('userRole', 'parent');
     
+            // Mostrar notificación de éxito
             toast.success('¡Registro exitoso!', {
                 position: 'top-center',
                 duration: 3000,
             });
     
-            // Aquí puedes redirigir al usuario a otra página o realizar otras acciones después del registro exitoso
+            
+            setTimeout(() => {
+                window.location.href = '/'; // Cambia la ruta según tu aplicación
+            }, 3000); 
+    
         } catch (error) {
             // Manejo de errores
             let errorMessage = "Error al registrar el usuario";
