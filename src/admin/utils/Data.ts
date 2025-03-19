@@ -29,14 +29,14 @@ export const fetchUsers = async () => {
 /**
  * Función para generar un respaldo de la base de datos.
  */
-export const generateBackup = async () => {
+export const generateBackup = async (collections: string[] = []) => {
   const token = localStorage.getItem("Token"); // Obtener el token del localStorage
 
   if (!token) {
     throw new Error("No hay token de autenticación.");
   }
 
-  const response = await fetch(`${API_BASE_URL}/backup`, {
+  const response = await fetch(`${API_BASE_URL}/backup?collections=${collections.join(',')}`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`, // Enviar el token en la cabecera
@@ -67,4 +67,27 @@ export const generateBackup = async () => {
   document.body.removeChild(a);
 
   return { success: true, message: "Respaldo generado y descargado con éxito" };
+};
+
+export const getCollections = async () => {
+  const token = localStorage.getItem("Token"); // Obtener el token del localStorage
+
+  if (!token) {
+    throw new Error("No hay token de autenticación.");
+  }
+
+  const response = await fetch(`${API_BASE_URL}/collections`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`, // Enviar el token en la cabecera
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al obtener las colecciones.");
+  }
+
+  // Convertir la respuesta a JSON
+  const data = await response.json();
+  return data.data; // Retornar la lista de colecciones
 };

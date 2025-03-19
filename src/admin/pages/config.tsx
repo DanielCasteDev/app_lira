@@ -1,17 +1,59 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar"; // Importa el componente Sidebar
-import { generateBackup } from "../utils/Data"; // Importa la función generateBackup
+import { generateBackup, getCollections } from "../utils/Data"; // Importa las funciones
 import { toast, Toaster } from "react-hot-toast"; // Importa Toaster
 import LoadingSpinner from "../../cargando"; // Importa el componente LoadingSpinner
 
 const ConfigPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false); // Estado para manejar el loading
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]); // Estado para manejar las colecciones seleccionadas
+  const [collections, setCollections] = useState<string[]>([]); // Estado para almacenar las colecciones de la base de datos
+  const [selectAll, setSelectAll] = useState(false); // Estado para manejar la selección de todas las colecciones
+
+  // Obtener las colecciones al cargar el componente
+  useEffect(() => {
+    const fetchCollections = async () => {
+      try {
+        const collections = await getCollections();
+        setCollections(collections);
+      } catch (error) {
+        console.error("Error al obtener las colecciones:", error);
+        toast.error("Hubo un error al obtener las colecciones.");
+      }
+    };
+
+    fetchCollections();
+  }, []);
+
+  // Función para manejar la selección de todas las colecciones
+  const handleSelectAll = () => {
+    if (!selectAll) {
+      setSelectedCollections(collections); // Seleccionar todas las colecciones
+    } else {
+      setSelectedCollections([]); // Deseleccionar todas las colecciones
+    }
+    setSelectAll(!selectAll); // Cambiar el estado de "Seleccionar todas"
+  };
+
+  // Función para manejar la selección individual de colecciones
+  const handleCollectionSelection = (collectionName: string) => {
+    setSelectedCollections((prev) =>
+      prev.includes(collectionName)
+        ? prev.filter((name) => name !== collectionName)
+        : [...prev, collectionName]
+    );
+
+    // Si se deselecciona una colección individualmente, desmarcar "Seleccionar todas"
+    if (selectAll && !selectedCollections.includes(collectionName)) {
+      setSelectAll(false);
+    }
+  };
 
   // Función para manejar la solicitud de respaldo
   const handleBackup = async () => {
     setIsLoading(true); // Activar el loading
     try {
-      const result = await generateBackup();
+      const result = await generateBackup(selectedCollections);
       toast.success(result.message); // Mostrar mensaje de éxito con react-hot-toast
     } catch (error) {
       console.error("Error al generar el respaldo:", error);
@@ -35,6 +77,40 @@ const ConfigPage: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Respaldo de Base de Datos
           </h3>
+          <div className="space-y-2 mb-4">
+            <label className="block text-sm font-medium text-gray-700">Selecciona las colecciones:</label>
+            <div className="flex flex-wrap gap-2">
+              {/* Checkbox para "Todas las colecciones" */}
+              <div className="flex items-center w-full mb-2">
+                <input
+                  type="checkbox"
+                  id="select-all"
+                  checked={selectAll}
+                  onChange={handleSelectAll}
+                  className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <label htmlFor="select-all" className="ml-2 text-sm text-gray-700">
+                  Todas las colecciones
+                </label>
+              </div>
+
+              {/* Checkboxes para cada colección */}
+              {collections.map((collection) => (
+                <div key={collection} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id={collection}
+                    checked={selectedCollections.includes(collection)}
+                    onChange={() => handleCollectionSelection(collection)}
+                    className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                  />
+                  <label htmlFor={collection} className="ml-2 text-sm text-gray-700">
+                    {collection}
+                  </label>
+                </div>
+              ))}
+            </div>
+          </div>
           <button
             onClick={handleBackup}
             className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
