@@ -26,7 +26,7 @@ const RegistrarHijos: React.FC = () => {
                 // Opciones de compresión
                 const options = {
                     maxSizeMB: 1, // Tamaño máximo en MB
-                    maxWidthOrHeight: 1800, // Ancho o alto máximo
+                    maxWidthOrHeight: 3500, // Ancho o alto máximo
                     useWebWorker: true, // Usar WebWorker para mejorar el rendimiento
                 };
 
