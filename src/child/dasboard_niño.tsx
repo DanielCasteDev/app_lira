@@ -65,7 +65,7 @@ const Inicio: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`http://localhost:4000/api/child-profile/${childId}`, {
+        const response = await fetch(`https://api-lira.onrender.com/api/child-profile/${childId}`, {
           headers: { Authorization: `Bearer ${localStorage.getItem("Token")}` },
         });
 
