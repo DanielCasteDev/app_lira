@@ -6,6 +6,11 @@ import Admin from './admin/Dashboard.ad';
 import Parent from './parent/Dashboard.parent';
 import ConfigAdm from './admin/pages/config';
 import UserAdm from './admin/pages/users';
+import Registrar_Hijos from './parent/pages/Registrar_hijos';
+import Progreso from './child/progreso';
+import Inicio from './child/inicio';
+import Perfiles from './parent/pages/perfiles';
+import Child from './child/dasboard_niño';
 
 function App() {
   return (
@@ -26,8 +31,18 @@ function App() {
         <Route path="/users" element={<UserAdm />} />
 
 
+      {/* Rutas Papás */}
 
         <Route path="/parent" element={<Parent />} />
+        <Route path="/Registrar_hijos" element={<Registrar_Hijos />} />
+        <Route path="/progreso" element={<Progreso />} />
+        <Route path="/perfiles" element={<Perfiles />} />
+
+
+      {/* Rutas Niños */}
+
+      <Route path="/child" element={<Child />} />
+      <Route path="/inicio" element={<Inicio />} />
 
 
       </Routes>

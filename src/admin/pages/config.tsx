@@ -3,6 +3,7 @@ import Sidebar from "../components/sidebar"; // Importa el componente Sidebar
 import { generateBackup, getCollections } from "../utils/Data"; // Importa las funciones
 import { toast, Toaster } from "react-hot-toast"; // Importa Toaster
 import LoadingSpinner from "../../cargando"; // Importa el componente LoadingSpinner
+import { FiCheck } from "react-icons/fi"; // Importa el ícono de checkmark
 
 const ConfigPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false); // Estado para manejar el loading
@@ -77,44 +78,74 @@ const ConfigPage: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-800 mb-4">
             Respaldo de Base de Datos
           </h3>
-          <div className="space-y-2 mb-4">
-            <label className="block text-sm font-medium text-gray-700">Selecciona las colecciones:</label>
-            <div className="flex flex-wrap gap-2">
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Selecciona las colecciones:
+            </label>
+            <div className="flex flex-col space-y-2">
               {/* Checkbox para "Todas las colecciones" */}
-              <div className="flex items-center w-full mb-2">
-                <input
-                  type="checkbox"
-                  id="select-all"
-                  checked={selectAll}
-                  onChange={handleSelectAll}
-                  className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                />
-                <label htmlFor="select-all" className="ml-2 text-sm text-gray-700">
-                  Todas las colecciones
+              <div className="flex items-center">
+                <label className="inline-flex items-center cursor-pointer">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      id="select-all"
+                      checked={selectAll}
+                      onChange={handleSelectAll}
+                      className="sr-only" // Oculta el checkbox nativo
+                    />
+                    <div
+                      className={`w-5 h-5 flex items-center justify-center border-2 rounded transition-colors duration-200 ${
+                        selectAll
+                          ? "bg-orange-500 border-orange-500"
+                          : "bg-white border-gray-300"
+                      }`}
+                    >
+                      {selectAll && (
+                        <FiCheck className="w-4 h-4 text-white" /> // Ícono de checkmark
+                      )}
+                    </div>
+                  </div>
+                  <span className="ml-2 text-sm text-gray-700">Todas las colecciones</span>
                 </label>
               </div>
 
               {/* Checkboxes para cada colección */}
-              {collections.map((collection) => (
-                <div key={collection} className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id={collection}
-                    checked={selectedCollections.includes(collection)}
-                    onChange={() => handleCollectionSelection(collection)}
-                    className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-                  />
-                  <label htmlFor={collection} className="ml-2 text-sm text-gray-700">
-                    {collection}
-                  </label>
-                </div>
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {collections.map((collection) => (
+                  <div key={collection} className="flex items-center">
+                    <label className="inline-flex items-center cursor-pointer">
+                      <div className="relative">
+                        <input
+                          type="checkbox"
+                          id={collection}
+                          checked={selectedCollections.includes(collection)}
+                          onChange={() => handleCollectionSelection(collection)}
+                          className="sr-only" // Oculta el checkbox nativo
+                        />
+                        <div
+                          className={`w-5 h-5 flex items-center justify-center border-2 rounded transition-colors duration-200 ${
+                            selectedCollections.includes(collection)
+                              ? "bg-orange-500 border-orange-500"
+                              : "bg-white border-gray-300"
+                          }`}
+                        >
+                          {selectedCollections.includes(collection) && (
+                            <FiCheck className="w-4 h-4 text-white" /> // Ícono de checkmark
+                          )}
+                        </div>
+                      </div>
+                      <span className="ml-2 text-sm text-gray-700">{collection}</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <button
             onClick={handleBackup}
-            className="bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors"
-            disabled={isLoading} // Deshabilitar el botón mientras carga
+            className="mt-4 bg-orange-500 text-white px-4 py-2 rounded-md hover:bg-orange-600 transition-colors disabled:opacity-50"
+            disabled={isLoading || selectedCollections.length === 0} // Deshabilitar si no hay selecciones o está cargando
           >
             {isLoading ? "Generando respaldo..." : "Generar Respaldo"}
           </button>
@@ -127,23 +158,37 @@ const ConfigPage: React.FC = () => {
           </h3>
           <div className="space-y-4">
             <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="email-notifications"
-                className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-              />
-              <label htmlFor="email-notifications" className="ml-2 text-sm text-gray-700">
-                Recibir notificaciones por correo electrónico
+              <label className="inline-flex items-center cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="email-notifications"
+                    className="sr-only" // Oculta el checkbox nativo
+                  />
+                  <div className="w-5 h-5 flex items-center justify-center border-2 border-gray-300 rounded transition-colors duration-200">
+                    <FiCheck className="w-4 h-4 text-white opacity-0" /> 
+                  </div>
+                </div>
+                <span className="ml-2 text-sm text-gray-700">
+                  Recibir notificaciones por correo electrónico
+                </span>
               </label>
             </div>
             <div className="flex items-center">
-              <input
-                type="checkbox"
-                id="push-notifications"
-                className="h-4 w-4 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
-              />
-              <label htmlFor="push-notifications" className="ml-2 text-sm text-gray-700">
-                Recibir notificaciones push
+              <label className="inline-flex items-center cursor-pointer">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    id="push-notifications"
+                    className="sr-only" // Oculta el checkbox nativo
+                  />
+                  <div className="w-5 h-5 flex items-center justify-center border-2 border-gray-300 rounded transition-colors duration-200">
+                    <FiCheck className="w-4 h-4 text-white opacity-0" /> 
+                  </div>
+                </div>
+                <span className="ml-2 text-sm text-gray-700">
+                  Recibir notificaciones push
+                </span>
               </label>
             </div>
           </div>

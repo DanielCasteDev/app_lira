@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Settings, Users, History, Activity, LogOut, Home } from "lucide-react"; // Importa íconos
+import { Menu, X, Users, History, Activity, LogOut, Home, PlusCircle, ClipboardList } from "lucide-react"; // Importa íconos
 
 const Sidebar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Estado para el menú móvil
@@ -27,23 +27,24 @@ const Sidebar: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">Dashboard Admin</h1>
+          <h1 className="text-xl font-bold text-gray-800">Dashboard Papás</h1>
         </div>
         <nav className="flex-1 flex flex-col justify-between px-4 py-6">
           <ul className="space-y-2">
             {[
-              { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
-              { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
-              { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-              { name: "Historial", icon: <History className="w-5 h-5" />, path: "#historial" },
-              { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "#actividades" },
+              { name: "Inicio", icon: <Home className="w-5 h-5 text-gray-700" />, path: "/parent" },
+              { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/Registrar_hijos" },
+              { name: "Perfiles", icon: <Users className="w-5 h-5 text-gray-700" />, path: "/perfiles" },
+              { name: "Progreso", icon: <Activity className="w-5 h-5 text-gray-700" />, path: "/progreso" },
+              { name: "Historial", icon: <History className="w-5 h-5 text-gray-700" />, path: "/historial" },
+              { name: "Tareas", icon: <ClipboardList className="w-5 h-5 text-gray-700" />, path: "/tareas" }, // Nueva opción
             ].map((item, index) => (
               <li key={index}>
                 <a
                   href={item.path}
-                  className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all"
+                  className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all group"
                 >
-                  {item.icon}
+                  {React.cloneElement(item.icon, { className: "w-5 h-5 text-gray-700 group-hover:text-orange-600" })}
                   <span className="ml-3">{item.name}</span>
                 </a>
               </li>
@@ -56,9 +57,9 @@ const Sidebar: React.FC = () => {
               <li>
                 <button
                   onClick={handleLogout} // Usamos onClick en lugar de href
-                  className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full"
+                  className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full group"
                 >
-                  <LogOut className="w-5 h-5" />
+                  <LogOut className="w-5 h-5 text-gray-700 group-hover:text-orange-600" />
                   <span className="ml-3">Cerrar Sesión</span>
                 </button>
               </li>
@@ -72,7 +73,7 @@ const Sidebar: React.FC = () => {
         className="md:hidden fixed top-6 left-4 p-2 bg-white rounded-lg shadow-lg z-50"
         onClick={toggleMobileMenu}
       >
-        <Menu className="text-orange-600" />
+        <Menu className="text-gray-700" />
       </button>
 
       {/* Menú móvil */}
@@ -98,30 +99,31 @@ const Sidebar: React.FC = () => {
             transition={{ duration: 0.3 }}
           >
             <div className="p-6 border-b border-gray-200">
-              <h1 className="text-xl font-bold text-gray-800">Dashboard Admin</h1>
+              <h1 className="text-xl font-bold text-gray-800">Dashboard Papás</h1>
               <button
                 className="absolute top-4 right-4 p-2"
                 onClick={toggleMobileMenu}
               >
-                <X className="text-orange-600" />
+                <X className="text-gray-700" />
               </button>
             </div>
             <nav className="flex-1 flex flex-col justify-between px-4 py-6">
               <ul className="space-y-2">
                 {[
-                  { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
-                  { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
-                  { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-                  { name: "Historial", icon: <History className="w-5 h-5" />, path: "#historial" },
-                  { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "#actividades" },
+                  { name: "Inicio", icon: <Home className="w-5 h-5 text-gray-700" />, path: "/parent" },
+                  { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/registrar-hijos" },
+                  { name: "Perfiles", icon: <Users className="w-5 h-5 text-gray-700" />, path: "/perfiles" },
+                  { name: "Progreso", icon: <Activity className="w-5 h-5 text-gray-700" />, path: "/progreso" },
+                  { name: "Historial", icon: <History className="w-5 h-5 text-gray-700" />, path: "/historial" },
+                  { name: "Tareas", icon: <ClipboardList className="w-5 h-5 text-gray-700" />, path: "/tareas" }, // Nueva opción
                 ].map((item, index) => (
                   <li key={index}>
                     <a
                       href={item.path}
-                      className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all"
+                      className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all group"
                       onClick={toggleMobileMenu}
                     >
-                      {item.icon}
+                      {React.cloneElement(item.icon, { className: "w-5 h-5 text-gray-700 group-hover:text-orange-600" })}
                       <span className="ml-3">{item.name}</span>
                     </a>
                   </li>
@@ -134,9 +136,9 @@ const Sidebar: React.FC = () => {
                   <li>
                     <button
                       onClick={handleLogout} // Usamos onClick en lugar de href
-                      className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full"
+                      className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full group"
                     >
-                      <LogOut className="w-5 h-5" />
+                      <LogOut className="w-5 h-5 text-gray-700 group-hover:text-orange-600" />
                       <span className="ml-3">Cerrar Sesión</span>
                     </button>
                   </li>

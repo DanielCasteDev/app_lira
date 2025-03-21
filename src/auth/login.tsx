@@ -28,21 +28,27 @@ const LoginPage = () => {
         localStorage.setItem("userPassword", contraseña);
         localStorage.setItem("userRole", data.user.role); // Acceder a data.user.role
         localStorage.setItem("Token", data.token);
+        localStorage.setItem("userNombre", data.user.nombre);
+        localStorage.setItem("id", data.user._id);
+        localStorage.setItem("id_niño", data.user.id_niño);
+
 
         // Mostrar notificación de éxito
         toast.success("Inicio de sesión exitoso");
 
         // Redirigir según el rol
         setTimeout(() => {
-            if (data.user.role === "admin") {
-                navigate("/admin"); // Redirigir a la página de admin
-            } else if (data.user.role === "parent") {
-                navigate("/parent"); // Redirigir a la página de parent
-            } else {
-                toast.error("Rol no reconocido");
-            }
-            setLoading(false); // Desactivar el icono de carga
-        }, 1500); // Esperar 1.5 segundos antes de redirigir
+          if (data.user.role === "admin") {
+              navigate("/admin"); // Redirigir a la página de admin
+          } else if (data.user.role === "parent") {
+              navigate("/parent"); // Redirigir a la página de parent
+          } else if (data.user.role === "child") {
+              navigate("/child"); // Redirigir a la página de child
+          } else {
+              toast.error("Rol no reconocido");
+          }
+          setLoading(false); // Desactivar el icono de carga
+      }, 1500); // Esperar 1.5 segundos antes de redirigir
 
         console.log("Datos del usuario:", data);
     } catch (error) {
@@ -65,7 +71,7 @@ const LoginPage = () => {
       <Toaster position="top-right" reverseOrder={false} />
 
       <a
-        href="http://localhost:5173/"
+        href="https://educacion-lira.vercel.app/"
         className="absolute top-4 right-6 flex items-center text-gray-500 hover:text-gray-700 transition-all duration-200"
       >
         <FaArrowLeft className="w-5 h-5 mr-2" />
