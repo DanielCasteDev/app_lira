@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion"; // Importa Framer Motion
 import Sidebar from "./components/sidebar_dad"; // Importa el componente Sidebar
 import Navbar from "./components/navbar_superior"; // Importa el componente Navbar
+import { FaBook, FaTasks, FaGamepad, FaChartLine } from "react-icons/fa"; // Importa iconos
 
 const Dashboard: React.FC = () => {
   // Recuperar el nombre del usuario desde el localStorage
@@ -19,7 +20,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white text-gray-900">
+    <div className="min-h-screen flex bg-gray-50 text-gray-900">
       {/* Sidebar */}
       <Sidebar />
 
@@ -37,105 +38,99 @@ const Dashboard: React.FC = () => {
             initial="hidden"
             animate="visible"
           >
-            <h1 className="text-4xl font-bold text-gray-900 mb-6">
-              ¡Bienvenido, {nombreUsuario}!
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              ¡Bienvenido a LIRA, {nombreUsuario}!
             </h1>
+            <p className="text-gray-600 text-lg mb-6">
+              LIRA es una plataforma diseñada para superar los desafíos del aprendizaje de la lectura en niños, ofreciendo interactividad, personalización y seguimiento del progreso.
+            </p>
           </motion.div>
 
-          {/* Grid de tarjetas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
-            {/* Tarjeta 1: Selecciona tu Perfil */}
+          {/* Explicación del Panel en Cards con Iconos */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {/* Card 1: Interactividad */}
             <motion.div
-              className="bg-gray-100 p-6 rounded-2xl shadow-lg flex flex-col items-center"
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
             >
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Selecciona tu Perfil
+              <FaGamepad className="text-4xl text-gray-700 mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Interactividad
               </h2>
-              <p className="text-gray-600 mt-2">Elige el niño que jugará hoy.</p>
-              <button className="mt-4 bg-gray-300 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-400">
-                Ingresar a Perfil
-              </button>
+              <p className="text-gray-600">
+                Actividades dinámicas que captan la atención de los niños.
+              </p>
             </motion.div>
 
-            {/* Tarjeta 2: Tu Progreso */}
+            {/* Card 2: Personalización */}
             <motion.div
-              className="bg-gray-100 p-6 rounded-2xl shadow-lg flex flex-col items-center"
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.2 }}
             >
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Tu Progreso
+              <FaBook className="text-4xl text-gray-700 mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Personalización
               </h2>
-              <p className="text-gray-600 mt-2">
-                Has completado el 75% de tu aprendizaje.
+              <p className="text-gray-600">
+                Contenidos adaptados a cada estilo de aprendizaje.
               </p>
-              <div className="w-full bg-gray-200 h-4 rounded-full mt-3">
-                <div className="bg-gray-400 h-4 rounded-full w-3/4"></div>
-              </div>
             </motion.div>
 
-            {/* Tarjeta 3: Juegos Completados */}
+            {/* Card 3: Progreso */}
             <motion.div
-              className="bg-gray-100 p-6 rounded-2xl shadow-lg flex flex-col items-center"
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.4 }}
             >
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Juegos Completados
+              <FaChartLine className="text-4xl text-gray-700 mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Progreso
               </h2>
-              <p className="text-gray-600 mt-2">
-                Has completado 5 juegos esta semana.
+              <p className="text-gray-600">
+                Seguimiento detallado del avance de cada niño.
               </p>
-              <button className="mt-4 bg-gray-300 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-400">
-                Ver Historial
-              </button>
             </motion.div>
 
-            {/* Tarjeta 4: Tareas Pendientes */}
+            {/* Card 4: Gamificación */}
             <motion.div
-              className="bg-gray-100 p-6 rounded-2xl shadow-lg flex flex-col items-center"
+              className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 flex flex-col items-center text-center"
               variants={cardVariants}
               initial="hidden"
               animate="visible"
               transition={{ delay: 0.6 }}
             >
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Tareas Pendientes
+              <FaTasks className="text-4xl text-gray-700 mb-4" />
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                Gamificación
               </h2>
-              <p className="text-gray-600 mt-2">
-                Te quedan 3 tareas por completar.
+              <p className="text-gray-600">
+                Juegos educativos que refuerzan el aprendizaje.
               </p>
-              <button className="mt-4 bg-gray-300 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-400">
-                Ir a Tareas
-              </button>
-            </motion.div>
-
-            {/* Tarjeta 5: Insignias */}
-            <motion.div
-              className="bg-gray-100 p-6 rounded-2xl shadow-lg flex flex-col items-center"
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ delay: 0.8 }}
-            >
-              <h2 className="text-2xl font-semibold text-gray-900">
-                Insignias
-              </h2>
-              <p className="text-gray-600 mt-2">
-                Has ganado 3 nuevas insignias esta semana.
-              </p>
-              <button className="mt-4 bg-gray-300 text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-400">
-                Ver Insignias
-              </button>
             </motion.div>
           </div>
+
+          {/* Mensaje adicional */}
+          <motion.div
+            className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 text-center"
+            variants={cardVariants}
+            initial="hidden"
+            animate="visible"
+            transition={{ delay: 0.8 }}
+          >
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              ¿Cómo aborda LIRA los desafíos del aprendizaje?
+            </h2>
+            <p className="text-gray-600">
+              LIRA combina <strong>interactividad</strong>, <strong>personalización</strong> y <strong>gamificación</strong> para superar las limitaciones de los métodos tradicionales, ofreciendo una experiencia educativa más efectiva y atractiva para los niños.
+            </p>
+          </motion.div>
         </div>
       </div>
     </div>

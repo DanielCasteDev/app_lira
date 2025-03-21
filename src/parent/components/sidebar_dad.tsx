@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Users, History, Activity, LogOut, Home, PlusCircle, ClipboardList } from "lucide-react"; // Importa íconos
+import { Menu, X, Users, History, LogOut, Home, PlusCircle, ClipboardList } from "lucide-react"; // Importa íconos
 
 const Sidebar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Estado para el menú móvil
@@ -35,7 +35,6 @@ const Sidebar: React.FC = () => {
               { name: "Inicio", icon: <Home className="w-5 h-5 text-gray-700" />, path: "/parent" },
               { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/Registrar_hijos" },
               { name: "Perfiles", icon: <Users className="w-5 h-5 text-gray-700" />, path: "/perfiles" },
-              { name: "Progreso", icon: <Activity className="w-5 h-5 text-gray-700" />, path: "/progreso" },
               { name: "Historial", icon: <History className="w-5 h-5 text-gray-700" />, path: "/historial" },
               { name: "Tareas", icon: <ClipboardList className="w-5 h-5 text-gray-700" />, path: "/tareas" }, // Nueva opción
             ].map((item, index) => (
@@ -113,7 +112,6 @@ const Sidebar: React.FC = () => {
                   { name: "Inicio", icon: <Home className="w-5 h-5 text-gray-700" />, path: "/parent" },
                   { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/registrar-hijos" },
                   { name: "Perfiles", icon: <Users className="w-5 h-5 text-gray-700" />, path: "/perfiles" },
-                  { name: "Progreso", icon: <Activity className="w-5 h-5 text-gray-700" />, path: "/progreso" },
                   { name: "Historial", icon: <History className="w-5 h-5 text-gray-700" />, path: "/historial" },
                   { name: "Tareas", icon: <ClipboardList className="w-5 h-5 text-gray-700" />, path: "/tareas" }, // Nueva opción
                 ].map((item, index) => (

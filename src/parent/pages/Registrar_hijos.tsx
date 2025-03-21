@@ -18,33 +18,50 @@ const RegistrarHijos: React.FC = () => {
     const [password, setPassword] = useState<string>('');
     const [loading, setLoading] = useState(false); // Estado para el icono de carga
 
-    // Función para manejar la selección de una imagen
     const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
+    
+        // Validar que el archivo sea una imagen
+        if (file && file.type.startsWith('image/')) {
             try {
                 // Opciones de compresión
                 const options = {
-                    maxSizeMB: 1, // Tamaño máximo en MB
-                    maxWidthOrHeight: 3500, // Ancho o alto máximo
+                    maxSizeMB: 1, // Tamaño máximo en MB (1 MB)
+                    maxWidthOrHeight: 3500, // Mantenemos una resolución alta (3500px)
                     useWebWorker: true, // Usar WebWorker para mejorar el rendimiento
+                    initialQuality: 0.4, // Calidad inicial (50%) para equilibrar tamaño y resolución
                 };
-
+    
                 // Comprimir la imagen
                 const compressedFile = await imageCompression(file, options);
-
+    
+                // Verificar el tamaño del archivo comprimido
+                if (compressedFile.size > 1 * 1024 * 1024) { // 1 MB en bytes
+                    toast.error('La imagen comprimida sigue siendo demasiado grande. Por favor, selecciona una imagen más pequeña.');
+                    return;
+                }
+    
                 // Convertir la imagen comprimida a base64
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setSelectedImage(reader.result as string);
                 };
+                reader.onerror = () => {
+                    throw new Error('Error al leer el archivo comprimido.');
+                };
                 reader.readAsDataURL(compressedFile);
+    
+                // Feedback al usuario
+                toast.success('Imagen comprimida y lista para subir.');
             } catch (error) {
                 console.error('Error al comprimir la imagen:', error);
-                toast.error('Error al comprimir la imagen');
+                toast.error('Error al comprimir la imagen. Por favor, intenta con otra imagen.');
             }
+        } else {
+            toast.error('Por favor, selecciona un archivo de imagen válido.');
         }
     };
+    
 
     // Función para manejar el envío del formulario
     const handleSubmit = async () => {
@@ -175,7 +192,7 @@ const RegistrarHijos: React.FC = () => {
                                             value: genero,
                                             setter: setGenero,
                                             type: 'select',
-                                            options: ['', 'masculino', 'femenino', 'otro'],
+                                            options: ['', 'Masculino', 'Femenino', ],
                                         },
                                     ].map((field, index) => (
                                         <motion.div key={index} variants={itemVariants}>
