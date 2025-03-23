@@ -3,63 +3,86 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/lira.png";
 import fondo from "../assets/image.jpg";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Importa useEffect
 import { loginUser } from "../auth/utils/Data";
-import { toast, Toaster } from "react-hot-toast"; // Importa Toaster
-import LoadingSpinner from "../cargando"; // Importa el componente de carga
+import { toast, Toaster } from "react-hot-toast";
+import LoadingSpinner from "../cargando";
 
 const LoginPage = () => {
   const [correo, setCorreo] = useState("");
   const [contraseña, setContraseña] = useState("");
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false); // Estado para el icono de carga
+  const [loading, setLoading] = useState(false);
+
+  // Efecto para verificar si el usuario ya está autenticado
+  useEffect(() => {
+    const token = localStorage.getItem("Token");
+    const userRole = localStorage.getItem("userRole");
+
+    if (token && userRole) {
+      setLoading(true); // Activar el estado de carga
+
+      // Redirigir según el rol
+      setTimeout(() => {
+        if (userRole === "admin") {
+          navigate("/admin");
+        } else if (userRole === "parent") {
+          navigate("/parent");
+        } else if (userRole === "child") {
+          navigate("/child");
+        } else {
+          toast.error("Rol no reconocido");
+        }
+        setLoading(false); // Desactivar el icono de carga
+      }, 1500); // Esperar 1.5 segundos antes de redirigir
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); // Activar el estado de carga
 
     try {
-        const data = await loginUser(correo, contraseña);
+      const data = await loginUser(correo, contraseña);
 
-        console.log("Datos recibidos del servidor:", data);
+      console.log("Datos recibidos del servidor:", data);
 
-        // Guardar datos en localStorage
-        localStorage.setItem("userEmail", correo);
-        localStorage.setItem("userPassword", contraseña);
-        localStorage.setItem("userRole", data.user.role); // Acceder a data.user.role
-        localStorage.setItem("Token", data.token);
-        localStorage.setItem("userNombre", data.user.nombre);
-        localStorage.setItem("id", data.user._id);
-        localStorage.setItem("id_niño", data.user.id_niño);
+      // Guardar datos en localStorage
+      localStorage.setItem("userEmail", correo);
+      localStorage.setItem("userRole", data.user.role);
+      localStorage.setItem("Token", data.token);
+      localStorage.setItem("userNombre", data.user.nombre);
+      localStorage.setItem("id", data.user._id);
+      localStorage.setItem("id_niño", data.user.id_niño);
 
+      // Mostrar notificación de éxito
+      toast.success("Inicio de sesión exitoso");
 
-        // Mostrar notificación de éxito
-        toast.success("Inicio de sesión exitoso");
-
-        // Redirigir según el rol
-        setTimeout(() => {
-          if (data.user.role === "admin") {
-              navigate("/admin"); // Redirigir a la página de admin
-          } else if (data.user.role === "parent") {
-              navigate("/parent"); // Redirigir a la página de parent
-          } else if (data.user.role === "child") {
-              navigate("/child"); // Redirigir a la página de child
-          } else {
-              toast.error("Rol no reconocido");
-          }
-          setLoading(false); // Desactivar el icono de carga
+      // Redirigir según el rol
+      setTimeout(() => {
+        if (data.user.role === "admin") {
+          navigate("/admin");
+        } else if (data.user.role === "parent") {
+          navigate("/parent");
+        } else if (data.user.role === "child") {
+          navigate("/child");
+        } else {
+          toast.error("Rol no reconocido");
+        }
+        setLoading(false); // Desactivar el icono de carga
       }, 1500); // Esperar 1.5 segundos antes de redirigir
 
-        console.log("Datos del usuario:", data);
+      console.log("Datos del usuario:", data);
     } catch (error) {
-        setLoading(false); // Desactivar el icono de carga en caso de error
-        if (error instanceof Error) {
-            toast.error(error.message);
-        } else {
-            toast.error("Ocurrió un error desconocido");
-        }
+      setLoading(false); // Desactivar el icono de carga en caso de error
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Ocurrió un error desconocido");
+      }
     }
-};
+  };
+
   const loginVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
@@ -67,7 +90,6 @@ const LoginPage = () => {
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
-      {/* Renderiza Toaster aquí para que los toasts funcionen */}
       <Toaster position="top-right" reverseOrder={false} />
 
       <a
@@ -77,10 +99,8 @@ const LoginPage = () => {
         <FaArrowLeft className="w-5 h-5 mr-2" />
         <span>Regresar</span>
       </a>
-      
-      {loading && (
-          <LoadingSpinner />
-      )}
+
+      {loading && <LoadingSpinner />}
 
       <div className="h-screen flex flex-col lg:flex-row">
         <div
@@ -170,7 +190,7 @@ const LoginPage = () => {
               <p className="mt-2 text-sm text-gray-600">
                 ¿Aún no tienes una cuenta?{" "}
                 <a
-                  href="/registro" // Cambia "/registro" por la ruta correcta para la página de registro
+                  href="/registro"
                   className="text-orange-500 hover:text-orange-600 focus:outline-none transition-all duration-200"
                 >
                   Crea una gratis

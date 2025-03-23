@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar"; // Importa el componente Sidebar
 import { fetchUsers } from "../utils/Data"; // Importar la función fetchUsers
-import { FaEye, FaEyeSlash, FaEdit, FaTrash } from "react-icons/fa"; // Importar íconos de react-icons
+import { FaEye, FaEyeSlash, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa"; // Importar íconos de react-icons
 
 interface User {
   _id: string;
@@ -16,6 +16,9 @@ const UsersPage: React.FC = () => {
   const [loading, setLoading] = useState(true); // Estado para manejar la carga
   const [error, setError] = useState(""); // Estado para manejar errores
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
+  const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
+  const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
+  const [usersPerPage] = useState(8); // Número de usuarios por página
 
   useEffect(() => {
     const getUsers = async () => {
@@ -35,6 +38,30 @@ const UsersPage: React.FC = () => {
 
     getUsers();
   }, []);
+
+  // Filtrar usuarios en función del término de búsqueda
+  const filteredUsers = users.filter((user) =>
+    user.correo.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  // Lógica de paginación
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = filteredUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  // Ir a la página anterior
+  const goToPreviousPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  // Ir a la página siguiente
+  const goToNextPage = () => {
+    if (currentPage < Math.ceil(filteredUsers.length / usersPerPage)) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
 
   const handleDelete = async (userId: string) => {
     try {
@@ -56,19 +83,40 @@ const UsersPage: React.FC = () => {
       <main className="md:ml-64 p-6 pt-20 md:pt-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Lista de Usuarios</h2>
 
+        {/* Buscador mejorado */}
+        <div className="mb-6 relative">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Buscar por correo..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <FaSearch className="text-gray-400" />
+            </div>
+          </div>
+        </div>
+
         {loading && <p className="text-gray-600">Cargando usuarios...</p>}
 
         {error && <p className="text-red-500">{error}</p>}
 
         {!loading && !error && (
-          <div className="bg-white p-6 rounded-lg shadow-md">
+          <div className="bg-white rounded-lg shadow-md overflow-hidden">
+            {/* Tabla estilo Excel */}
             <div className="overflow-x-auto">
               <table className="min-w-full">
-                <thead>
+                <thead className="bg-gray-50">
                   <tr>
-                    <th className="text-left text-sm font-semibold text-gray-800">Correo</th>
-                    <th className="text-left text-sm font-semibold text-gray-800 hidden md:table-cell">Rol</th>
-                    <th className="text-left text-sm font-semibold text-gray-800">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Correo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Rol
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Contraseña
                       <button
                         onClick={() => setShowPassword(!showPassword)}
@@ -77,22 +125,35 @@ const UsersPage: React.FC = () => {
                         {showPassword ? <FaEyeSlash /> : <FaEye />}
                       </button>
                     </th>
-                    <th className="text-left text-sm font-semibold text-gray-800 hidden md:table-cell">Estado</th>
-                    <th className="text-left text-sm font-semibold text-gray-800">Acciones</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Estado
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Acciones
+                    </th>
                   </tr>
                 </thead>
-                <tbody>
-                  {users.map((user) => (
-                    <tr key={user._id} className="border-b border-gray-200">
-                      <td className="py-3 text-sm text-gray-700">{user.correo}</td>
-                      <td className="py-3 text-sm text-gray-700 hidden md:table-cell">{user.role}</td>
-                      <td className="py-3 text-sm text-gray-700">
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {currentUsers.map((user) => (
+                    <tr
+                      key={user._id}
+                      className="hover:bg-gray-50 transition-all"
+                    >
+                      <td className="px-6 py-4 text-sm text-gray-700">
+                        {user.correo}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700 hidden md:table-cell">
+                        {user.role}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-700">
                         {showPassword ? user.contraseña : "••••••••"}
                       </td>
-                      <td className="py-3 text-sm text-gray-700 hidden md:table-cell">
+                      <td className="px-6 py-4 text-sm text-gray-700 hidden md:table-cell">
                         <div
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-                            user.activo ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                            user.activo
+                              ? "bg-green-100 text-green-800"
+                              : "bg-red-100 text-red-800"
                           }`}
                         >
                           <span
@@ -103,7 +164,7 @@ const UsersPage: React.FC = () => {
                           {user.activo ? "Activo" : "Inactivo"}
                         </div>
                       </td>
-                      <td className="py-3 text-sm text-gray-700">
+                      <td className="px-6 py-4 text-sm text-gray-700">
                         <button
                           onClick={() => handleEdit(user._id)}
                           className="text-blue-500 hover:text-blue-700 mr-2"
@@ -121,6 +182,39 @@ const UsersPage: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* Paginador mejorado */}
+            <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200">
+              <span className="text-sm text-gray-700">
+                Mostrando {indexOfFirstUser + 1} a {Math.min(indexOfLastUser, filteredUsers.length)} de {filteredUsers.length} usuarios
+              </span>
+              <div className="flex space-x-2">
+                <button
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-lg flex items-center ${
+                    currentPage === 1
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-orange-500 text-white hover:bg-orange-600 transition-all"
+                  }`}
+                >
+                  <FaChevronLeft className="mr-2" />
+                  Anterior
+                </button>
+                <button
+                  onClick={goToNextPage}
+                  disabled={currentPage === Math.ceil(filteredUsers.length / usersPerPage)}
+                  className={`px-4 py-2 rounded-lg flex items-center ${
+                    currentPage === Math.ceil(filteredUsers.length / usersPerPage)
+                      ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                      : "bg-orange-500 text-white hover:bg-orange-600 transition-all"
+                  }`}
+                >
+                  Siguiente
+                  <FaChevronRight className="ml-2" />
+                </button>
+              </div>
             </div>
           </div>
         )}
