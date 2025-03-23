@@ -3,8 +3,8 @@ import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/lira.png";
 import fondo from "../assets/image.jpg";
-import { useState, useEffect } from "react"; // Importa useEffect
-import { loginUser } from "../auth/utils/Data";
+import { useState, useEffect } from "react";
+import { loginUser, updateUserStatus } from "../auth/utils/Data";
 import { toast, Toaster } from "react-hot-toast";
 import LoadingSpinner from "../cargando";
 
@@ -18,9 +18,21 @@ const LoginPage = () => {
   useEffect(() => {
     const token = localStorage.getItem("Token");
     const userRole = localStorage.getItem("userRole");
+    const idUsuario = localStorage.getItem("id_usuario"); // Obtener el id_usuario del localStorage
 
-    if (token && userRole) {
+    if (token && userRole && idUsuario) {
       setLoading(true); // Activar el estado de carga
+
+      // Marcar como activo en el backend
+      const markUserAsActive = async () => {
+        try {
+          await updateUserStatus(idUsuario, true); // true = activo
+        } catch (error) {
+          console.error("Error al marcar al usuario como activo:", error);
+        }
+      };
+
+      markUserAsActive(); // Llamar a la función para marcar al usuario como activo
 
       // Redirigir según el rol
       setTimeout(() => {
@@ -38,6 +50,7 @@ const LoginPage = () => {
     }
   }, [navigate]);
 
+  // Función para manejar el inicio de sesión
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true); // Activar el estado de carga
@@ -54,6 +67,10 @@ const LoginPage = () => {
       localStorage.setItem("userNombre", data.user.nombre);
       localStorage.setItem("id", data.user._id);
       localStorage.setItem("id_niño", data.user.id_niño);
+      localStorage.setItem("id_usuario", data.user.id_usuario);
+
+      // Marcar como activo en el backend
+      await updateUserStatus(data.user.id_usuario, true); // true = activo
 
       // Mostrar notificación de éxito
       toast.success("Inicio de sesión exitoso");

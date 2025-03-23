@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../components/sidebar"; // Importa el componente Sidebar
-import { fetchUsers } from "../utils/Data"; // Importar la función fetchUsers
+import { fetchUsers, fetchUserStatus } from "../utils/Data"; // Importar las funciones fetchUsers y fetchUserStatus
 import { FaEye, FaEyeSlash, FaEdit, FaTrash, FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa"; // Importar íconos de react-icons
 
 interface User {
@@ -17,9 +17,11 @@ const UsersPage: React.FC = () => {
   const [error, setError] = useState(""); // Estado para manejar errores
   const [showPassword, setShowPassword] = useState(false); // Estado para mostrar/ocultar la contraseña
   const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all"); // Estado para filtrar por estado
   const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
   const [usersPerPage] = useState(8); // Número de usuarios por página
 
+  // Obtener la lista de usuarios al cargar el componente
   useEffect(() => {
     const getUsers = async () => {
       try {
@@ -39,10 +41,41 @@ const UsersPage: React.FC = () => {
     getUsers();
   }, []);
 
-  // Filtrar usuarios en función del término de búsqueda
-  const filteredUsers = users.filter((user) =>
-    user.correo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  interface UserStatus {
+    correo: string;
+    activo: boolean;
+  }
+
+  // Actualizar el estado de los usuarios cada 5 segundos
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const userStatus: UserStatus[] = await fetchUserStatus();
+
+        // Actualizar el estado de los usuarios en la lista
+        setUsers((prevUsers) =>
+          prevUsers.map((user) => {
+            const updatedUser = userStatus.find((u: UserStatus) => u.correo === user.correo);
+            return updatedUser ? { ...user, activo: updatedUser.activo } : user;
+          })
+        );
+      } catch (error) {
+        console.error("Error al actualizar el estado de los usuarios:", error);
+      }
+    }, 5000); // Actualizar cada 5 segundos
+
+    return () => clearInterval(interval); // Limpiar el intervalo al desmontar el componente
+  }, []);
+
+  // Filtrar usuarios en función del término de búsqueda y el estado
+  const filteredUsers = users.filter((user) => {
+    const matchesSearchTerm = user.correo.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && user.activo) ||
+      (statusFilter === "inactive" && !user.activo);
+    return matchesSearchTerm && matchesStatus;
+  });
 
   // Lógica de paginación
   const indexOfLastUser = currentPage * usersPerPage;
@@ -83,8 +116,9 @@ const UsersPage: React.FC = () => {
       <main className="md:ml-64 p-6 pt-20 md:pt-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-6">Lista de Usuarios</h2>
 
-        {/* Buscador mejorado */}
-        <div className="mb-6 relative">
+        {/* Filtros de búsqueda */}
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Buscador por correo */}
           <div className="relative">
             <input
               type="text"
@@ -97,6 +131,35 @@ const UsersPage: React.FC = () => {
               <FaSearch className="text-gray-400" />
             </div>
           </div>
+
+          {/* Filtro por estado */}
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as "all" | "active" | "inactive")}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all appearance-none bg-white"
+            >
+              <option value="all">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <svg
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {loading && <p className="text-gray-600">Cargando usuarios...</p>}
@@ -105,7 +168,7 @@ const UsersPage: React.FC = () => {
 
         {!loading && !error && (
           <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            {/* Tabla estilo Excel */}
+            {/* Tabla de usuarios */}
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-gray-50">
@@ -184,7 +247,7 @@ const UsersPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Paginador mejorado */}
+            {/* Paginador */}
             <div className="flex justify-between items-center px-6 py-4 bg-gray-50 border-t border-gray-200">
               <span className="text-sm text-gray-700">
                 Mostrando {indexOfFirstUser + 1} a {Math.min(indexOfLastUser, filteredUsers.length)} de {filteredUsers.length} usuarios

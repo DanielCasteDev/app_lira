@@ -48,3 +48,21 @@ export const registerParent = async (
 
   return response.json();
 };
+
+// Función para actualizar el estado de un usuario (activo/inactivo)
+export const updateUserStatus = async (userId: string, newStatus: boolean) => {
+  const endpoint = newStatus ? "activate" : "deactivate"; // Determina la ruta
+  const response = await fetch(`${API_BASE_URL}/${userId}/${endpoint}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Error al actualizar el estado del usuario");
+  }
+
+  return response.json();
+};

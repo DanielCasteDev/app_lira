@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Users, History, LogOut, Home, PlusCircle, ClipboardList } from "lucide-react"; // Importa íconos
+import { updateUserStatus } from "../../auth/utils/Data"; // Importa la función para actualizar el estado
 
 const Sidebar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Estado para el menú móvil
@@ -10,11 +11,25 @@ const Sidebar: React.FC = () => {
   };
 
   // Función para manejar el cierre de sesión
-  const handleLogout = () => {
-    // Borrar todo el localStorage
-    localStorage.clear();
-    // Redirigir al usuario a la página de login
-    window.location.href = "/"; // Cambia "/login" por la ruta correcta de tu aplicación
+  const handleLogout = async () => {
+    try {
+      const userId = localStorage.getItem("id_usuario"); // Obtener id_usuario
+
+      if (!userId) {
+        throw new Error("ID de usuario no encontrado");
+      }
+
+      // Marcar como inactivo en el backend
+      await updateUserStatus(userId, false); // false = inactivo
+
+      // Borrar todo el localStorage
+      localStorage.clear();
+
+      // Redirigir al usuario a la página de login
+      window.location.href = "/"; // Cambia "/" por la ruta correcta de tu aplicación
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
   };
 
   return (
