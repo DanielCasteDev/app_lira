@@ -125,7 +125,7 @@ const Sidebar: React.FC = () => {
               <ul className="space-y-2">
                 {[
                   { name: "Inicio", icon: <Home className="w-5 h-5 text-gray-700" />, path: "/parent" },
-                  { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/registrar-hijos" },
+                  { name: "Registrar Hijos", icon: <PlusCircle className="w-5 h-5 text-gray-700" />, path: "/Registrar_hijos" },
                   { name: "Perfiles", icon: <Users className="w-5 h-5 text-gray-700" />, path: "/perfiles" },
                   { name: "Historial", icon: <History className="w-5 h-5 text-gray-700" />, path: "/historial" },
                   { name: "Tareas", icon: <ClipboardList className="w-5 h-5 text-gray-700" />, path: "/tareas" }, // Nueva opción
