@@ -27,9 +27,9 @@ const RegistrarHijos: React.FC = () => {
                 // Opciones de compresión
                 const options = {
                     maxSizeMB: 1, // Tamaño máximo en MB (1 MB)
-                    maxWidthOrHeight: 3500, // Mantenemos una resolución alta (3500px)
+                    maxWidthOrHeight: 3800, // Mantenemos una resolución alta (3500px)
                     useWebWorker: true, // Usar WebWorker para mejorar el rendimiento
-                    initialQuality: 0.4, // Calidad inicial (50%) para equilibrar tamaño y resolución
+                    initialQuality: 0.3, // Calidad inicial (50%) para equilibrar tamaño y resolución
                 };
     
                 // Comprimir la imagen
