@@ -425,7 +425,7 @@ const FormaPalabras: React.FC = () => {
   };
 
   const exitToMenu = () => {
-    navigate("/inicio");
+    navigate("/child");
     setGameStarted(false);
     setGameOver(false);
   };
