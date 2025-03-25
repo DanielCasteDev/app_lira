@@ -11,6 +11,20 @@ interface ResetResponse {
   message: string;
 }
 
+// Solicitar restablecimiento de contraseña
+export const forgotPassword = async (correo: string): Promise<ResetResponse> => {
+  try {
+    const response = await axios.post<ResetResponse>(
+      `${API_BASE_URL}/forgot-password`,
+      { correo }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ResetResponse>;
+    throw new Error(axiosError.response?.data?.message || 'Error al solicitar restablecimiento');
+  }
+};
+
 // Verificar token de restablecimiento
 export const verifyResetToken = async (token: string): Promise<TokenResponse> => {
   try {

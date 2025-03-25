@@ -3,62 +3,52 @@ import { EnvelopeIcon, ArrowLeftIcon } from "@heroicons/react/24/solid";
 import { useState, FormEvent } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import LoadingSpinner from "../cargando";
+import { forgotPassword } from './utils/Data';
 
 export default function RestablecerContrasena() {
   const [correo, setCorreo] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
+// Update the handleSubmit function in RestablecerContrasena.tsx
+const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setIsLoading(true);
 
-    try {
-      const response = await fetch('http://localhost:4000/api/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ correo }),
-      });
+  try {
+    const data = await forgotPassword(correo);
 
-      const data = await response.json();
+    toast.success(data.message || 'Correo de restablecimiento enviado', {
+      duration: 5000,
+      position: 'top-center',
+      style: {
+        background: '#4BB543',
+        color: '#fff',
+        padding: '16px',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+      },
+      icon: '✉️',
+    });
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Error al solicitar restablecimiento');
-      }
-
-      toast.success(data.message || 'Correo de restablecimiento enviado', {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: '#4BB543',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '8px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
-        },
-        icon: '✉️',
-      });
-
-      setIsSubmitted(true);
-    } catch (error: any) {
-      console.error("Error:", error);
-      toast.error(error.message || 'Error al enviar el enlace', {
-        duration: 5000,
-        position: 'top-center',
-        style: {
-          background: '#FF3333',
-          color: '#fff',
-          padding: '16px',
-          borderRadius: '8px'
-        },
-        icon: '❌',
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    setIsSubmitted(true);
+  } catch (error: any) {
+    console.error("Error:", error);
+    toast.error(error.message || 'Error al enviar el enlace', {
+      duration: 5000,
+      position: 'top-center',
+      style: {
+        background: '#FF3333',
+        color: '#fff',
+        padding: '16px',
+        borderRadius: '8px'
+      },
+      icon: '❌',
+    });
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 flex items-center justify-center p-4">
