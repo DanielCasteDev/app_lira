@@ -31,6 +31,8 @@ const Sidebar: React.FC = () => {
       console.error("Error al cerrar sesión:", error);
     }
   };
+
+  
   return (
     <>
       {/* Sidebar para pantallas grandes */}

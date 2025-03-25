@@ -1,6 +1,42 @@
 // data.ts
+import axios, { AxiosError } from 'axios';
 import { API_BASE_URL } from '../../api/api_service';
 
+interface TokenResponse {
+  valid: boolean;
+  message?: string;
+}
+
+interface ResetResponse {
+  message: string;
+}
+
+// Verificar token de restablecimiento
+export const verifyResetToken = async (token: string): Promise<TokenResponse> => {
+  try {
+    const response = await axios.get<TokenResponse>(`${API_BASE_URL}/verify-token/${token}`);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<TokenResponse>;
+    throw new Error(axiosError.response?.data?.message || 'Error al verificar el token');
+  }
+};
+
+// Restablecer contraseña
+export const resetPassword = async (token: string, newPassword: string): Promise<ResetResponse> => {
+  try {
+    const response = await axios.post<ResetResponse>(
+      `${API_BASE_URL}/reset-password/${token}`,
+      { nuevaContraseña: newPassword }
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ResetResponse>;
+    throw new Error(axiosError.response?.data?.message || 'Error al restablecer la contraseña');
+  }
+};
+
+// Las otras funciones que ya tenías...
 export const loginUser = async (correo: string, contraseña: string) => {
   const response = await fetch(`${API_BASE_URL}/login`, {
     method: "POST",
@@ -17,8 +53,6 @@ export const loginUser = async (correo: string, contraseña: string) => {
 
   return response.json();
 };
-
-
 
 export const registerParent = async (
   nombre: string,
@@ -49,9 +83,8 @@ export const registerParent = async (
   return response.json();
 };
 
-// Función para actualizar el estado de un usuario (activo/inactivo)
 export const updateUserStatus = async (userId: string, newStatus: boolean) => {
-  const endpoint = newStatus ? "activate" : "deactivate"; // Determina la ruta
+  const endpoint = newStatus ? "activate" : "deactivate";
   const response = await fetch(`${API_BASE_URL}/${userId}/${endpoint}`, {
     method: "PUT",
     headers: {

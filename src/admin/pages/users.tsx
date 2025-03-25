@@ -19,7 +19,7 @@ const UsersPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState(""); // Estado para el término de búsqueda
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all"); // Estado para filtrar por estado
   const [currentPage, setCurrentPage] = useState(1); // Estado para la página actual
-  const [usersPerPage] = useState(8); // Número de usuarios por página
+  const [usersPerPage] = useState(5); // Número de usuarios por página
 
   // Obtener la lista de usuarios al cargar el componente
   useEffect(() => {
