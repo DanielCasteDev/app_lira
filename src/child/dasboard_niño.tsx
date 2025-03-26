@@ -159,12 +159,13 @@ const Inicio: React.FC = () => {
         <div className="text-7xl mb-4">😮</div>
         <h2 className="text-2xl font-bold text-orange-600 mb-2">¡Vaya!</h2>
         <p className="text-lg text-gray-700 mb-6">{error}</p>
-        <button 
-          onClick={() => window.location.reload()} 
-          className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-8 py-3 rounded-full text-lg font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all"
+        <Link 
+          to="/" 
+          onClick={() => localStorage.clear()}
+          className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-8 py-3 rounded-full text-lg font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all inline-block"
         >
-          ¡Intentar otra vez!
-        </button>
+          ¡Mandar al inicio!
+        </Link>
       </div>
     </div>
   );

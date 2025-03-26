@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar_dad";
 import Navbar from "../components/navbar_superior";
-import { fetchChildren } from "../utils/data"; // Asegúrate de que la ruta sea correcta
-import { motion } from "framer-motion"; // Para animaciones
-import { FaUser, FaBirthdayCake, FaVenusMars, FaIdBadge } from "react-icons/fa"; // Iconos
+import { fetchChildren } from "../utils/data";
+import { motion } from "framer-motion";
+import { FaUser, FaBirthdayCake, FaVenusMars, FaIdBadge } from "react-icons/fa";
+import LoadingSpinner from '../../cargando'; // Componente de carga importado
 
 interface Child {
     _id: string;
@@ -18,21 +19,25 @@ interface Child {
 const Progreso: React.FC = () => {
     const [children, setChildren] = useState<Child[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const getChildren = async () => {
             try {
+                setLoading(true);
                 const data = await fetchChildren();
                 setChildren(data);
+                setError(null);
             } catch (err: any) {
                 setError(err.message);
+            } finally {
+                setLoading(false);
             }
         };
 
         getChildren();
     }, []);
 
-    // Animación para las tarjetas
     const cardVariants = {
         hidden: { opacity: 0, y: 20 },
         visible: { opacity: 1, y: 0 },
@@ -46,9 +51,15 @@ const Progreso: React.FC = () => {
                 <div className="p-6 mt-10">
                     <h1 className="text-4xl font-bold text-gray-900 mb-6">Perfiles de Hijos</h1>
 
-                    {error && <p className="text-red-500">{error}</p>}
-
-                    {!error && (
+                    {loading ? (
+                        <LoadingSpinner /> // Usando el componente importado
+                    ) : error ? (
+                        <p className="text-red-500">{error}</p>
+                    ) : children.length === 0 ? (
+                        <div className="text-center py-10">
+                            <p className="text-gray-500 text-lg">No se encontraron perfiles de hijos</p>
+                        </div>
+                    ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-5xl">
                             {children.map((child, index) => (
                                 <motion.div
