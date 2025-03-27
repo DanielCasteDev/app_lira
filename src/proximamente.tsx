@@ -1,10 +1,7 @@
 export default function ComingSoonPage() {
   const handleGoHome = () => {
-    // Limpiar localStorage sin mostrar alerta
-    localStorage.clear();
-    window.location.href = "/";
+    window.history.back();
   };
-
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white px-4 sm:px-6 text-center">
       {/* Título principal */}
