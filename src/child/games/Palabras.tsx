@@ -27,8 +27,243 @@ const FormaPalabras: React.FC = () => {
   const [difficulty, setDifficulty] = useState<'fácil' | 'medio' | 'difícil'>('fácil');
   const [childAge, setChildAge] = useState<number | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProgress, setSavingProgress] = useState(false);
   const dragItem = useRef<number | null>(null);
   const dragOverItem = useRef<number | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sistema de puntuación mejorado
+  const POINTS_BY_DIFFICULTY = {
+    'fácil': 50,
+    'medio': 100,
+    'difícil': 150
+  };
+  const HINT_PENALTY = 20;
+  const TIME_BONUS_MULTIPLIER = 5;
+  const INITIAL_TIME = {
+    'fácil': 60,
+    'medio': 75,
+    'difícil': 90
+  };
+
+  // Base de datos de palabras por dificultad
+  const wordChallenges: WordChallenge[] = [
+    // Nivel fácil (4 palabras)
+    {
+      word: "SOL",
+      image: "https://cdn.pixabay.com/photo/2018/01/14/23/12/nature-3082832_640.jpg",
+      letters: ["S", "O", "L", "N", "T", "R"],
+      hint: "Nos da luz y calor durante el día",
+      difficulty: "fácil"
+    },
+    {
+      word: "PAN",
+      image: "https://cdn.pixabay.com/photo/2014/07/22/09/59/bread-399286_640.jpg",
+      letters: ["P", "A", "N", "M", "O", "L"],
+      hint: "Alimento que se hornea y es básico en la dieta",
+      difficulty: "fácil"
+    },
+    {
+      word: "LUZ",
+      image: "https://cdn.pixabay.com/photo/2013/07/12/18/39/light-153564_640.png",
+      letters: ["L", "U", "Z", "D", "A", "S"],
+      hint: "Lo que enciendes cuando está oscuro",
+      difficulty: "fácil"
+    },
+    {
+      word: "MAR",
+      image: "https://cdn.pixabay.com/photo/2013/07/18/10/56/railroad-163518_640.jpg",
+      letters: ["M", "A", "R", "L", "T", "S"],
+      hint: "Gran extensión de agua salada",
+      difficulty: "fácil"
+    },
+
+    // Nivel medio (8 palabras)
+    {
+      word: "MESA",
+      image: "https://cdn.pixabay.com/photo/2017/08/01/23/56/table-2565020_640.jpg",
+      letters: ["M", "E", "S", "A", "L", "T", "O"],
+      hint: "Mueble con patas donde comes o trabajas",
+      difficulty: "medio"
+    },
+    {
+      word: "FLOR",
+      image: "https://cdn.pixabay.com/photo/2018/01/29/07/11/flower-3115353_640.jpg",
+      letters: ["F", "L", "O", "R", "P", "D", "S"],
+      hint: "Crece en el jardín y huele bien",
+      difficulty: "medio"
+    },
+    {
+      word: "GATO",
+      image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
+      letters: ["G", "A", "T", "O", "C", "M", "P"],
+      hint: "Animal doméstico que maúlla",
+      difficulty: "medio"
+    },
+    {
+      word: "CASA",
+      image: "https://cdn.pixabay.com/photo/2016/06/24/10/47/house-1477041_640.jpg",
+      letters: ["C", "A", "S", "A", "L", "M", "T"],
+      hint: "Lugar donde vives con tu familia",
+      difficulty: "medio"
+    },
+    {
+      word: "RÍO",
+      image: "https://cdn.pixabay.com/photo/2016/11/29/05/45/columbia-river-1868049_640.jpg",
+      letters: ["R", "Í", "O", "M", "N", "L"],
+      hint: "Corriente de agua que fluye",
+      difficulty: "medio"
+    },
+    {
+      word: "SILLA",
+      image: "https://cdn.pixabay.com/photo/2017/08/02/01/01/living-room-2569325_640.jpg",
+      letters: ["S", "I", "L", "L", "A", "M", "T"],
+      hint: "Mueble con respaldo para sentarse",
+      difficulty: "medio"
+    },
+    {
+      word: "NUBE",
+      image: "https://cdn.pixabay.com/photo/2014/09/16/18/34/clouds-449919_640.jpg",
+      letters: ["N", "U", "B", "E", "C", "T", "R"],
+      hint: "Flotan en el cielo y pueden traer lluvia",
+      difficulty: "medio"
+    },
+    {
+      word: "PATO",
+      image: "https://cdn.pixabay.com/photo/2016/12/05/11/39/fowl-1883138_640.jpg",
+      letters: ["P", "A", "T", "O", "L", "M", "N"],
+      hint: "Ave acuática que hace 'cuac'",
+      difficulty: "medio"
+    },
+
+    // Nivel difícil (12 palabras)
+    {
+      word: "VENTANA",
+      image: "https://cdn.pixabay.com/photo/2016/11/29/08/41/apple-1868496_640.jpg",
+      letters: ["V", "E", "N", "T", "A", "N", "A", "M"],
+      hint: "Abertura en la pared para ver afuera",
+      difficulty: "difícil"
+    },
+    {
+      word: "JARDÍN",
+      image: "https://cdn.pixabay.com/photo/2016/11/30/15/00/garden-1872997_640.jpg",
+      letters: ["J", "A", "R", "D", "Í", "N", "P", "L", "O"],
+      hint: "Espacio con plantas y flores alrededor de una casa",
+      difficulty: "difícil"
+    },
+    {
+      word: "TIGRE",
+      image: "https://cdn.pixabay.com/photo/2017/07/24/19/57/tiger-2535888_640.jpg",
+      letters: ["T", "I", "G", "R", "E", "A", "L", "O", "N"],
+      hint: "Felino grande con rayas negras",
+      difficulty: "difícil"
+    },
+    {
+      word: "ESCUELA",
+      image: "https://cdn.pixabay.com/photo/2017/06/09/12/39/board-2387776_640.jpg",
+      letters: ["E", "S", "C", "U", "E", "L", "A", "D", "O"],
+      hint: "Lugar donde los niños van a aprender",
+      difficulty: "difícil"
+    },
+    {
+      word: "MONTAÑA",
+      image: "https://cdn.pixabay.com/photo/2015/12/01/20/28/mountain-1072828_640.jpg",
+      letters: ["M", "O", "N", "T", "A", "Ñ", "A", "L"],
+      hint: "Elevación natural del terreno",
+      difficulty: "difícil"
+    },
+    {
+      word: "AVIÓN",
+      image: "https://cdn.pixabay.com/photo/2014/05/03/01/02/airplane-336634_640.jpg",
+      letters: ["A", "V", "I", "Ó", "N", "M", "P", "L", "T"],
+      hint: "Vehículo que vuela por los aires",
+      difficulty: "difícil"
+    },
+    {
+      word: "PLANETA",
+      image: "https://cdn.pixabay.com/photo/2011/12/13/14/30/earth-11009_640.jpg",
+      letters: ["P", "L", "A", "N", "E", "T", "A", "M"],
+      hint: "Cuerpo celeste que gira alrededor de una estrella",
+      difficulty: "difícil"
+    },
+    {
+      word: "LIBRO",
+      image: "https://cdn.pixabay.com/photo/2015/11/19/21/14/book-1052014_640.jpg",
+      letters: ["L", "I", "B", "R", "O", "P", "A", "D"],
+      hint: "Contiene páginas con historias o conocimientos",
+      difficulty: "difícil"
+    },
+    {
+      word: "CIELO",
+      image: "https://cdn.pixabay.com/photo/2015/07/05/10/26/tree-832079_640.jpg",
+      letters: ["C", "I", "E", "L", "O", "N", "B", "T"],
+      hint: "Lo que ves cuando miras hacia arriba en un día despejado",
+      difficulty: "difícil"
+    },
+    {
+      word: "ÁRBOL",
+      image: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_640.jpg",
+      letters: ["Á", "R", "B", "O", "L", "M", "N", "S"],
+      hint: "Planta grande con tronco y ramas",
+      difficulty: "difícil"
+    },
+    {
+      word: "FUEGO",
+      image: "https://cdn.pixabay.com/photo/2017/01/31/23/42/decorative-2028033_640.png",
+      letters: ["F", "U", "E", "G", "O", "P", "L", "T"],
+      hint: "Produce calor y luz cuando algo se quema",
+      difficulty: "difícil"
+    },
+    {
+      word: "PUERTA",
+      image: "https://cdn.pixabay.com/photo/2017/02/03/08/12/door-2034431_640.jpg",
+      letters: ["P", "U", "E", "R", "T", "A", "L", "M"],
+      hint: "Entrada o salida de una habitación o edificio",
+      difficulty: "difícil"
+    }
+  ];
+
+  // Función para guardar el progreso en la BD
+  const saveProgress = async (newPoints: number, levelsCompleted: number) => {
+    setSavingProgress(true);
+    const childId = localStorage.getItem("id_niño");
+    if (!childId) {
+      setSavingProgress(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/child-progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+        },
+        body: JSON.stringify({
+          childId,
+          gameData: {
+            gameName: "FormaPalabras",
+            points: newPoints,
+            levelsCompleted,
+            highestDifficulty: difficulty,
+            lastPlayed: new Date()
+          },
+          totalPoints: newPoints
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar progreso');
+      }
+
+      const data = await response.json();
+      console.log("Progreso guardado:", data);
+    } catch (error) {
+      console.error("Error al guardar progreso:", error);
+    } finally {
+      setSavingProgress(false);
+    }
+  };
 
   // Efecto para obtener la edad del niño
   useEffect(() => {
@@ -50,14 +285,12 @@ const FormaPalabras: React.FC = () => {
         if (!response.ok) throw new Error("Error al obtener perfil del niño");
         
         const data = await response.json();
-        console.log("Respuesta completa de la API:", data);
         
         if (!data.childProfile?.fechaNacimiento) {
           throw new Error("No se encontró fecha de nacimiento en la respuesta");
         }
         
         const fechaNacimiento = new Date(data.childProfile.fechaNacimiento);
-        console.log("Fecha de nacimiento parseada:", fechaNacimiento);
         
         if (isNaN(fechaNacimiento.getTime())) {
           throw new Error("Fecha de nacimiento no válida");
@@ -71,7 +304,6 @@ const FormaPalabras: React.FC = () => {
           edad--;
         }
         
-        console.log("Edad calculada:", edad);
         setChildAge(edad);
         
         // Establecer dificultad inicial basada en la edad
@@ -85,7 +317,6 @@ const FormaPalabras: React.FC = () => {
         
       } catch (err) {
         console.error("Error al obtener perfil del niño:", err);
-        // Establecer dificultad por defecto si hay error
         setDifficulty('fácil');
       } finally {
         setLoadingProfile(false);
@@ -94,75 +325,6 @@ const FormaPalabras: React.FC = () => {
 
     fetchChildProfile();
   }, []);
-
-  const wordChallenges: WordChallenge[] = [
-    // Nivel fácil
-    {
-      word: "SOL",
-      image: "https://cdn.pixabay.com/photo/2018/01/28/12/37/sun-3114068_640.jpg",
-      letters: ["S", "O", "L", "N", "T", "R"],
-      hint: "Nos da luz y calor durante el día",
-      difficulty: "fácil"
-    },
-    {
-      word: "PAN",
-      image: "https://cdn.pixabay.com/photo/2014/07/22/09/59/bread-399286_640.jpg",
-      letters: ["P", "A", "N", "M", "O", "L"],
-      hint: "Alimento que se hornea y es básico en la dieta",
-      difficulty: "fácil"
-    },
-    {
-      word: "LUZ",
-      image: "https://cdn.pixabay.com/photo/2017/01/28/02/24/bulb-2014158_640.jpg",
-      letters: ["L", "U", "Z", "D", "A", "S"],
-      hint: "Lo que enciendes cuando está oscuro",
-      difficulty: "fácil"
-    },
-    // Nivel medio
-    {
-      word: "GATO",
-      image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
-      letters: ["G", "A", "T", "O", "C", "M", "P", "L"],
-      hint: "Animal doméstico que maúlla",
-      difficulty: "medio"
-    },
-    {
-      word: "FLOR",
-      image: "https://cdn.pixabay.com/photo/2018/01/29/07/11/flower-3115353_640.jpg",
-      letters: ["F", "L", "O", "R", "P", "D", "S", "A"],
-      hint: "Crece en el jardín y huele bien",
-      difficulty: "medio"
-    },
-    {
-      word: "CASA",
-      image: "https://cdn.pixabay.com/photo/2016/06/24/10/47/house-1477041_640.jpg",
-      letters: ["C", "A", "S", "A", "L", "M", "T", "O"],
-      hint: "Lugar donde vives con tu familia",
-      difficulty: "medio"
-    },
-    // Nivel difícil
-    {
-      word: "JARDIN",
-      image: "https://cdn.pixabay.com/photo/2016/11/30/15/00/garden-1872997_640.jpg",
-      letters: ["J", "A", "R", "D", "I", "N", "P", "L", "O", "S"],
-      hint: "Espacio con plantas y flores alrededor de una casa",
-      difficulty: "difícil"
-    },
-    {
-      word: "TIGRE",
-      image: "https://cdn.pixabay.com/photo/2017/07/24/19/57/tiger-2535888_640.jpg",
-      letters: ["T", "I", "G", "R", "E", "A", "L", "O", "N", "D"],
-      hint: "Felino grande con rayas negras",
-      difficulty: "difícil"
-    },
-    {
-      word: "ESCUELA",
-      image: "https://cdn.pixabay.com/photo/2018/01/17/07/06/laptop-3087585_640.jpg",
-      letters: ["E", "S", "C", "U", "E", "L", "A", "D", "O", "N", "M", "P"],
-      hint: "Lugar donde los niños van a aprender",
-      difficulty: "difícil"
-    }
-  ];
 
   const DifficultySelector: React.FC = () => {
     const difficulties = [
@@ -198,12 +360,10 @@ const FormaPalabras: React.FC = () => {
       }
     ];
   
-    // Filtrar dificultades basadas en la edad del niño
     const filteredDifficulties = childAge !== null 
       ? difficulties.filter(diff => childAge >= diff.minAge && childAge < diff.maxAge)
       : difficulties;
   
-    // Determinar el ancho de la grilla basado en el número de dificultades
     const gridClass = filteredDifficulties.length === 1 
       ? 'flex justify-center' 
       : filteredDifficulties.length === 2 
@@ -212,7 +372,6 @@ const FormaPalabras: React.FC = () => {
   
     return (
       <div className="relative w-full max-w-4xl bg-gradient-to-br from-amber-100 to-orange-100 rounded-3xl shadow-xl p-8 mt-8 border-4 border-amber-200">
-        {/* Botón de retroceso añadido aquí */}
         <motion.button
           onClick={() => navigate("/child")}
           whileHover={{ scale: 1.05 }}
@@ -226,7 +385,6 @@ const FormaPalabras: React.FC = () => {
           Forma Palabras
         </h1>
         
-        {/* Mostrar información de edad detectada */}
         {childAge !== null && (
           <div className="mb-6 bg-white p-4 rounded-xl shadow-md border-l-4 border-amber-400">
             <h2 className="text-xl font-bold text-amber-700 mb-1">
@@ -309,21 +467,22 @@ const FormaPalabras: React.FC = () => {
   const currentChallenge = filteredWords[currentLevel % filteredWords.length];
 
   const calculatePoints = () => {
-    const basePoints = {
-      'fácil': 50,
-      'medio': 100,
-      'difícil': 150
-    };
-    return basePoints[difficulty] + Math.floor(timeLeft / 5) * 10;
+    const basePoints = POINTS_BY_DIFFICULTY[difficulty];
+    const timeBonus = Math.floor(timeLeft / 5) * TIME_BONUS_MULTIPLIER;
+    const totalPoints = basePoints + timeBonus;
+    
+    console.log(`Puntos base: ${basePoints}, Bonus de tiempo: ${timeBonus}, Total: ${totalPoints}`);
+    
+    return totalPoints;
   };
 
   useEffect(() => {
     if (gameStarted) {
       initializeGame();
-      const timer = setInterval(() => {
+      timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            clearInterval(timer);
+            if (timerRef.current) clearInterval(timerRef.current);
             setGameOver(true);
             return 0;
           }
@@ -331,7 +490,11 @@ const FormaPalabras: React.FC = () => {
         });
       }, 1000);
 
-      return () => clearInterval(timer);
+      return () => {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      };
     }
   }, [currentLevel, gameStarted, difficulty]);
 
@@ -341,7 +504,7 @@ const FormaPalabras: React.FC = () => {
     setSelectedLetters([]);
     setCompleted(false);
     setShowHint(false);
-    setTimeLeft(60);
+    setTimeLeft(INITIAL_TIME[difficulty]);
     setGameOver(false);
   };
 
@@ -393,11 +556,31 @@ const FormaPalabras: React.FC = () => {
     dragOverItem.current = null;
   };
 
+  const handleLetterClick = (letter: string, index: number) => {
+    const newLetters = [...letters];
+    newLetters.splice(index, 1);
+    setLetters(newLetters);
+    
+    setSelectedLetters(prev => {
+      const newSelected = [...prev, letter];
+      checkCompletion(newSelected);
+      return newSelected;
+    });
+  };
+
+  const handleSelectedLetterClick = (index: number) => {
+    const newSelected = [...selectedLetters];
+    const [removedLetter] = newSelected.splice(index, 1);
+    setSelectedLetters(newSelected);
+    checkCompletion(newSelected);
+    
+    setLetters(prev => [...prev, removedLetter]);
+  };
+
   const checkCompletion = (currentSelected: string[]) => {
     if (currentSelected.join("") === currentChallenge.word) {
       setCompleted(true);
       setShowConfetti(true);
-      setPoints(points + calculatePoints());
       setTimeout(() => {
         setShowSuccess(true);
         setShowConfetti(false);
@@ -406,25 +589,57 @@ const FormaPalabras: React.FC = () => {
   };
 
   const handleNextLevel = () => {
+    const pointsEarned = calculatePoints();
+    
+    // Suma solo los puntos ganados en este nivel
+    const newPoints = points + pointsEarned;
+    const levelsCompleted = currentLevel + 1;
+    
+    // Guardamos el progreso con los puntos actualizados
+    saveProgress(newPoints, levelsCompleted);
+    
+    // Actualizamos el estado de puntos 
+    setPoints(newPoints);
+  
     if (currentLevel < filteredWords.length - 1) {
       setCurrentLevel(currentLevel + 1);
       setShowSuccess(false);
     } else {
+      // Si completó todos los niveles, navegamos al menú
       navigate("/child");
       setGameStarted(false);
     }
   };
 
   const handleReset = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
     initializeGame();
+    timerRef.current = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          if (timerRef.current) clearInterval(timerRef.current);
+          setGameOver(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
   const handleHint = () => {
-    setShowHint(true);
-    setPoints(Math.max(0, points - 20));
+    if (!showHint) {
+      setShowHint(true);
+      setPoints(prev => Math.max(0, prev - HINT_PENALTY));
+    }
   };
 
   const exitToMenu = () => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    saveProgress(points, currentLevel);
     navigate("/child");
     setGameStarted(false);
     setGameOver(false);
@@ -433,11 +648,16 @@ const FormaPalabras: React.FC = () => {
   if (loadingProfile) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex items-center justify-center">
-        <div className="text-center">
+        <motion.div
+          initial={{ scale: 0.8 }}
+          animate={{ scale: 1 }}
+          transition={{ repeat: Infinity, repeatType: "reverse", duration: 1 }}
+          className="text-center"
+        >
           <div className="text-5xl mb-4">📚</div>
           <h2 className="text-2xl font-bold text-amber-700">Cargando tu perfil...</h2>
-          <p className="text-amber-600">Por favor espera un momento</p>
-        </div>
+          <p className="text-amber-600">Preparando el juego para ti</p>
+        </motion.div>
       </div>
     );
   }
@@ -452,6 +672,14 @@ const FormaPalabras: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col items-center p-4">
+      {savingProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <p className="text-lg font-semibold">Guardando progreso...</p>
+          </div>
+        </div>
+      )}
+      
       {/* Barra superior */}
       <div className="w-full max-w-4xl flex justify-between items-center mb-6">
         <button 
@@ -512,7 +740,7 @@ const FormaPalabras: React.FC = () => {
             className="min-h-20 bg-amber-50 rounded-xl p-4 flex flex-wrap justify-center items-center border-2 border-dashed border-amber-200"
           >
             {selectedLetters.length === 0 && (
-              <p className="text-amber-400">Arrastra las letras aquí</p>
+              <p className="text-amber-400">Arrastra las letras aquí o haz clic en ellas</p>
             )}
             {selectedLetters.map((letter, index) => (
               <motion.div
@@ -522,11 +750,13 @@ const FormaPalabras: React.FC = () => {
                 onDragEnter={() => handleDragEnter(index)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop('selectedLetters', index)}
-                className={`text-4xl font-bold m-2 w-16 h-16 flex items-center justify-center rounded-lg shadow-md cursor-grab
+                onClick={() => handleSelectedLetterClick(index)}
+                className={`text-4xl font-bold m-2 w-16 h-16 flex items-center justify-center rounded-lg shadow-md cursor-pointer
                   ${completed && selectedLetters.join("") === currentChallenge.word 
-                    ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white" 
+                    ? "bg-gradient-to-r from-green-400 to-emerald-500 text-white animate-pulse" 
                     : "bg-gradient-to-r from-amber-100 to-orange-100 text-orange-700 border-2 border-amber-200"}`}
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.1 }}
               >
                 {letter}
               </motion.div>
@@ -550,9 +780,10 @@ const FormaPalabras: React.FC = () => {
                 onDragEnter={() => handleDragEnter(index)}
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={() => handleDrop('letters', index)}
-                className="text-4xl font-bold m-2 w-16 h-16 flex items-center justify-center bg-white text-orange-700 rounded-lg shadow-md hover:shadow-lg transition-all cursor-grab border-2 border-amber-200"
+                onClick={() => handleLetterClick(letter, index)}
+                className="text-4xl font-bold m-2 w-16 h-16 flex items-center justify-center bg-white text-orange-700 rounded-lg shadow-md hover:shadow-lg transition-all cursor-pointer border-2 border-amber-200"
                 whileTap={{ scale: 0.9 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.1 }}
               >
                 {letter}
               </motion.div>
@@ -563,22 +794,26 @@ const FormaPalabras: React.FC = () => {
 
       {/* Botones de acción */}
       <div className="flex space-x-4 mb-8">
-        <button 
+        <motion.button
           onClick={handleReset}
-          className="bg-gradient-to-r from-amber-300 to-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:shadow-lg transition-all hover:from-amber-400 hover:to-orange-500"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gradient-to-r from-amber-300 to-orange-400 text-white px-6 py-3 rounded-full font-bold shadow-md hover:shadow-lg transition-all"
         >
           Reiniciar
-        </button>
-        <button 
+        </motion.button>
+        <motion.button
           onClick={handleHint}
           disabled={showHint}
-          className={`px-6 py-3 rounded-full font-bold shadow-md hover:shadow-lg transition-all
+          whileHover={{ scale: showHint ? 1 : 1.05 }}
+          whileTap={{ scale: showHint ? 1 : 0.95 }}
+          className={`px-6 py-3 rounded-full font-bold shadow-md transition-all
             ${showHint 
               ? "bg-amber-200 text-amber-500 cursor-not-allowed" 
-              : "bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:from-amber-500 hover:to-orange-600"}`}
+              : "bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:shadow-lg"}`}
         >
           Pista (-20 pts)
-        </button>
+        </motion.button>
       </div>
 
       {/* Modal de éxito */}
@@ -601,12 +836,14 @@ const FormaPalabras: React.FC = () => {
               <p className="text-xl mb-4">Formaste la palabra: <span className="font-bold text-amber-700">{currentChallenge.word}</span></p>
               <p className="text-lg text-orange-600 mb-2">+{calculatePoints()} puntos</p>
               <p className="text-md text-amber-700 mb-6">Dificultad: {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</p>
-              <button 
+              <motion.button
                 onClick={handleNextLevel}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 className="bg-gradient-to-r from-green-400 to-emerald-500 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl w-full"
               >
                 {currentLevel < filteredWords.length - 1 ? "Siguiente palabra" : "¡Juego completado!"}
-              </button>
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
@@ -621,23 +858,28 @@ const FormaPalabras: React.FC = () => {
             exit={{ opacity: 0 }}
             className="fixed inset-0 pointer-events-none z-40 flex justify-center items-start overflow-hidden"
           >
-            {[...Array(50)].map((_, i) => (
+            {[...Array(100)].map((_, i) => (
               <motion.div
                 key={i}
-                initial={{ y: -100, x: Math.random() * window.innerWidth - window.innerWidth / 2 }}
+                initial={{ 
+                  y: -100, 
+                  x: Math.random() * window.innerWidth - window.innerWidth / 2,
+                  rotate: Math.random() * 360,
+                  opacity: 0
+                }}
                 animate={{ 
-                  y: window.innerHeight,
-                  x: Math.random() * 200 - 100,
-                  rotate: Math.random() * 360
+                  y: window.innerHeight + 100,
+                  x: Math.random() * 400 - 200,
+                  rotate: Math.random() * 720,
+                  opacity: [0, 1, 1, 0]
                 }}
                 transition={{ 
-                  duration: 2 + Math.random() * 3,
-                  repeat: Infinity,
-                  repeatDelay: Math.random() * 5
+                  duration: 3 + Math.random() * 2,
+                  ease: "linear"
                 }}
                 style={{
                   position: 'absolute',
-                  fontSize: `${10 + Math.random() * 20}px`,
+                  fontSize: `${15 + Math.random() * 25}px`,
                   color: ['#f97316', '#f59e0b', '#ea580c', '#d97706', '#b45309'][Math.floor(Math.random() * 5)]
                 }}
               >
@@ -668,24 +910,28 @@ const FormaPalabras: React.FC = () => {
               <p className="text-xl mb-4">Puntuación final: <span className="font-bold text-amber-700">{points} puntos</span></p>
               <p className="text-md text-amber-700 mb-6">Dificultad: {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}</p>
               <div className="space-y-3">
-                <button 
+                <motion.button
                   onClick={() => {
-                    setTimeLeft(60);
+                    setTimeLeft(INITIAL_TIME[difficulty]);
                     setGameOver(false);
                     setCurrentLevel(0);
                     setPoints(0);
                     initializeGame();
                   }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl w-full"
                 >
                   Jugar de nuevo
-                </button>
-                <button 
+                </motion.button>
+                <motion.button
                   onClick={exitToMenu}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   className="bg-gradient-to-r from-amber-200 to-orange-300 text-orange-700 px-8 py-3 rounded-full font-bold shadow-lg hover:shadow-xl w-full"
                 >
                   Volver al inicio
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>

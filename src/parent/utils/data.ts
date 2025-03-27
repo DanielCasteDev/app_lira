@@ -46,6 +46,8 @@ interface Child {
     genero: string;
     username: string;
     avatar?: string;
+    totalPoints: number; // Obligatorio
+
 }
 
 export const fetchChildren = async (): Promise<Child[]> => {

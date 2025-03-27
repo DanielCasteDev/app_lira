@@ -4,6 +4,26 @@ import { motion } from "framer-motion";
 import { API_BASE_URL } from '../api/api_service';
 import ProfileBadge from './components/perfil';
 
+// Definición de tipos mejorada
+interface ChildProfile {
+  _id: string;
+  nombre: string;
+  apellido: string;
+  username: string;
+  avatar?: string;
+  fechaNacimiento: string;
+  genero: string;
+  totalPoints: number;
+  level: number;
+  gameProgress?: {
+    gameName: string;
+    points: number;
+    levelsCompleted: number;
+    highestDifficulty: string;
+    lastPlayed: string;
+  }[];
+}
+
 // Animaciones mejoradas
 const cardVariants = {
   hidden: { opacity: 0, scale: 0.8 },
@@ -27,14 +47,6 @@ const floatAnimation = {
     ease: "easeInOut",
   },
 };
-
-interface ChildProfile {
-  nombre: string;
-  username: string;
-  avatar?: string;
-  nivel?: number;
-  puntos?: number;
-}
 
 const GameCard: React.FC<{ 
   title: string; 
@@ -74,6 +86,16 @@ const Inicio: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const childId = localStorage.getItem("id_niño");
 
+  // Función para calcular el nivel basado en los puntos
+  const calculateLevel = (points: number): number => {
+    return Math.floor(points / 500) + 1;
+  };
+
+  // Función para calcular el progreso hacia el siguiente nivel (0-100)
+  const calculateLevelProgress = (points: number): number => {
+    return (points % 500) / 5; // Convertir a porcentaje (500 puntos por nivel)
+  };
+
   useEffect(() => {
     const fetchChildProfile = async () => {
       if (!childId) {
@@ -89,7 +111,15 @@ const Inicio: React.FC = () => {
 
         if (!response.ok) throw new Error("¡Ups! Algo salió mal");
         const data = await response.json();
-        setChildProfile(data.childProfile);
+        
+        // Asegurar que el perfil tenga nivel y puntos calculados
+        const profileData: ChildProfile = {
+          ...data.childProfile,
+          totalPoints: data.childProfile.totalPoints || 0,
+          level: data.childProfile.level || calculateLevel(data.childProfile.totalPoints || 0)
+        };
+        
+        setChildProfile(profileData);
       } catch (err) {
         setError("No podemos cargar tus datos ahora");
       } finally {
@@ -185,10 +215,9 @@ const Inicio: React.FC = () => {
         </motion.div>
         
         <ProfileBadge />
-
       </div>
 
-      {/* Contenido principal - Diseño responsivo */}
+      {/* Contenido principal */}
       <div className="w-full max-w-7xl grid lg:grid-cols-3 gap-8">
         {/* Columna izquierda - Perfil y logros */}
         <div className="lg:col-span-1 space-y-6">
@@ -214,24 +243,57 @@ const Inicio: React.FC = () => {
                   )}
                 </div>
                 <div className="ml-4">
-                  <h2 className="text-2xl font-bold text-orange-600">¡Hola, {childProfile.nombre}!</h2>
-                  <div className="mt-3">
-                    <div className="flex items-center">
-                      <span className="text-xl font-bold text-amber-500">Nivel {childProfile.nivel || 1}</span>
-                      <div className="ml-3 bg-amber-100 rounded-full h-5 w-full max-w-xs">
-                        <div 
-                          className="bg-gradient-to-r from-amber-400 to-orange-400 h-5 rounded-full flex items-center justify-end pr-2"
-                          style={{ width: `${(childProfile.puntos || 0) % 100}%` }}
-                        >
-                          <span className="text-xs text-white font-bold">
-                            {childProfile.puntos || 0} pts
-                          </span>
+  <h2 className="text-2xl font-bold text-orange-600">¡Hola, {childProfile.nombre}!</h2>
+  <div className="mt-3">
+    <div className="flex items-center">
+      <span className="text-xl font-bold text-amber-600">Nivel {childProfile.level}</span>
+      <div className="ml-3 bg-gray-200 rounded-full h-6 w-full max-w-xs shadow-inner overflow-hidden">
+        <div 
+          className="bg-gradient-to-r from-amber-400 to-orange-500 h-6 rounded-full flex items-center justify-end pr-3 relative"
+          style={{ width: `${calculateLevelProgress(childProfile.totalPoints)}%` }}
+        >
+          <span className="text-xs font-bold text-white absolute right-2">
+            {Math.round(calculateLevelProgress(childProfile.totalPoints))}%
+          </span>
+          <div className="absolute inset-0 bg-orange-300 bg-opacity-30"></div>
+        </div>
+      </div>
+    </div>
+    <div className="mt-2 text-sm text-gray-600 flex items-center">
+      <span className="mr-2">🏅</span>
+      <span>{childProfile.totalPoints} puntos totales</span>
+      <span className="mx-2">•</span>
+      <span>Próximo nivel en {500 - (childProfile.totalPoints % 500)} pts</span>
+    </div>
+  </div>
+</div>
+              </div>
+
+              {/* Progreso en juegos */}
+              {childProfile.gameProgress && childProfile.gameProgress.length > 0 && (
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold text-orange-600 mb-3">Tu progreso</h3>
+                  <div className="space-y-3">
+                    {childProfile.gameProgress.map((game, index) => (
+                      <div key={index} className="bg-amber-50 p-3 rounded-xl">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-medium text-orange-700">{game.gameName}</span>
+                          <span className="text-sm font-bold text-amber-600">{game.points} pts</span>
+                        </div>
+                        <div className="w-full bg-amber-100 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-amber-400 to-orange-400 h-2 rounded-full"
+                            style={{ width: `${Math.min((game.points / 1000) * 100, 100)}%` }}
+                            ></div>
+                        </div>
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                          
                         </div>
                       </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
           )}
 
@@ -247,17 +309,17 @@ const Inicio: React.FC = () => {
               <div className="text-center p-3 bg-amber-50 rounded-2xl">
                 <div className="text-4xl mb-2">⭐</div>
                 <div className="text-sm text-gray-600 font-medium">Estrellas</div>
-                <div className="text-xl font-bold text-amber-600">{(childProfile?.puntos || 0) / 10}</div>
+                <div className="text-xl font-bold text-amber-600">{Math.floor((childProfile?.totalPoints || 0) / 100)}</div>
               </div>
               <div className="text-center p-3 bg-amber-50 rounded-2xl">
                 <div className="text-4xl mb-2">📚</div>
                 <div className="text-sm text-gray-600 font-medium">Libros</div>
-                <div className="text-xl font-bold text-orange-600">{Math.floor((childProfile?.puntos || 0) / 50)}</div>
+                <div className="text-xl font-bold text-orange-600">{Math.floor((childProfile?.totalPoints || 0) / 250)}</div>
               </div>
               <div className="text-center p-3 bg-amber-50 rounded-2xl">
                 <div className="text-4xl mb-2">🏆</div>
                 <div className="text-sm text-gray-600 font-medium">Trofeos</div>
-                <div className="text-xl font-bold text-red-500">{Math.floor((childProfile?.puntos || 0) / 100)}</div>
+                <div className="text-xl font-bold text-red-500">{Math.floor((childProfile?.totalPoints || 0) / 500)}</div>
               </div>
             </div>
           </motion.div>
@@ -274,29 +336,35 @@ const Inicio: React.FC = () => {
             </h3>
             
             <div className="space-y-3">
-              <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
-                <span className="text-3xl mr-3">✨</span>
-                <div>
-                  <p className="text-md font-bold text-orange-700">¡Racha de 3 días!</p>
-                  <p className="text-xs text-gray-500">Hace 2 días</p>
-                </div>
-              </div>
+            {childProfile && childProfile.level >= 2 && (
+  <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
+    <span className="text-3xl mr-3">✨</span>
+    <div>
+      <p className="text-md font-bold text-orange-700">¡Nivel 2 alcanzado!</p>
+      <p className="text-xs text-gray-500">¡Sigue así!</p>
+    </div>
+  </div>
+)}
               
-              <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
-                <span className="text-3xl mr-3">🔤</span>
-                <div>
-                  <p className="text-md font-bold text-orange-700">Dominas las vocales</p>
-                  <p className="text-xs text-gray-500">Hace 5 días</p>
-                </div>
-              </div>
+{childProfile && childProfile.totalPoints >= 50 && (
+  <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
+    <span className="text-3xl mr-3">🔤</span>
+    <div>
+      <p className="text-md font-bold text-orange-700">Primeros 50 puntos</p>
+      <p className="text-xs text-gray-500">¡Excelente trabajo!</p>
+    </div>
+  </div>
+)}
 
-              <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
-                <span className="text-3xl mr-3">📖</span>
-                <div>
-                  <p className="text-md font-bold text-orange-700">Primer cuento leído</p>
-                  <p className="text-xs text-gray-500">Hace 1 semana</p>
+              {childProfile?.gameProgress?.some(g => g.levelsCompleted >= 5) && (
+                <div className="flex items-center p-4 bg-amber-50 rounded-2xl">
+                  <span className="text-3xl mr-3">📖</span>
+                  <div>
+                    <p className="text-md font-bold text-orange-700">5 niveles completados</p>
+                    <p className="text-xs text-gray-500">¡Eres un experto!</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </motion.div>
         </div>
@@ -312,7 +380,7 @@ const Inicio: React.FC = () => {
             ¡Elige tu juego favorito!
           </motion.h1>
 
-          {/* Rejilla de juegos - 2 columnas en móvil, 3 en tablet, 4 en desktop */}
+          {/* Rejilla de juegos */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
             {juegos.map((juego, index) => (
               <div key={index} className="h-full">
@@ -349,29 +417,31 @@ const Inicio: React.FC = () => {
             </div>
           </div>
 
-          {/* Sección adicional para desktop */}
+          {/* Sección de progreso */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
-            className="mt-12 bg-white p-8 rounded-3xl shadow-xl border-4 border-amber-100 hidden lg:block"
+            className="mt-12 bg-white p-8 rounded-3xl shadow-xl border-4 border-amber-100"
           >
-            <h3 className="text-2xl font-bold text-orange-600 mb-6 text-center">¡Sigue aprendiendo!</h3>
-            <div className="grid grid-cols-3 gap-6">
+            <h3 className="text-2xl font-bold text-orange-600 mb-6 text-center">Tu Progreso</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="text-center">
                 <div className="text-5xl mb-4">📅</div>
-                <p className="font-medium text-orange-700">Tu racha actual</p>
-                <p className="text-3xl font-bold text-amber-500">2 días</p>
+                <p className="font-medium text-orange-700">Nivel actual</p>
+                <p className="text-3xl font-bold text-amber-500">{childProfile?.level}</p>
               </div>
               <div className="text-center">
                 <div className="text-5xl mb-4">⏱️</div>
-                <p className="font-medium text-orange-700">Tiempo hoy</p>
-                <p className="text-3xl font-bold text-amber-500">15 min</p>
+                <p className="font-medium text-orange-700">Puntos totales</p>
+                <p className="text-3xl font-bold text-amber-500">{childProfile?.totalPoints}</p>
               </div>
               <div className="text-center">
                 <div className="text-5xl mb-4">💎</div>
-                <p className="font-medium text-orange-700">Puntos hoy</p>
-                <p className="text-3xl font-bold text-amber-500">75</p>
+                <p className="font-medium text-orange-700">Próximo nivel</p>
+                <p className="text-3xl font-bold text-amber-500">
+                  {childProfile ? 500 - (childProfile.totalPoints % 500) : 500} pts
+                </p>
               </div>
             </div>
           </motion.div>

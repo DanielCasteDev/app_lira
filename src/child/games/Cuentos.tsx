@@ -22,8 +22,6 @@ interface Question {
   points: number;
 }
 
-
-
 const CuentosDivertidos: React.FC = () => {
   const navigate = useNavigate();
   const [stories, setStories] = useState<Story[]>([]);
@@ -43,6 +41,83 @@ const CuentosDivertidos: React.FC = () => {
   const [totalPoints, setTotalPoints] = useState(0);
   const [childAge, setChildAge] = useState<number | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [completedStories, setCompletedStories] = useState<number[]>([]);
+  const [, setProgressData] = useState<any>(null);
+
+  // Función para cargar el progreso guardado
+  const loadProgress = async () => {
+    const childId = localStorage.getItem("id_niño");
+    if (!childId) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/child-progress/${childId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+        }
+      });
+
+      if (!response.ok) throw new Error('Error al cargar progreso');
+      
+      const data = await response.json();
+      setProgressData(data);
+      
+      // Marcar cuentos completados
+      if (data.progress?.CuentosDivertidos?.completedStories) {
+        setCompletedStories(data.progress.CuentosDivertidos.completedStories);
+      }
+    } catch (error) {
+      console.error("Error al cargar progreso:", error);
+    }
+  };
+
+  // Función para guardar el progreso en la BD
+  const saveProgress = async (newPoints: number, storyId: number) => {
+    setSavingProgress(true);
+    const childId = localStorage.getItem("id_niño");
+    if (!childId) {
+      setSavingProgress(false);
+      return;
+    }
+
+    try {
+      // Actualizar la lista de cuentos completados
+      const updatedCompletedStories = completedStories.includes(storyId) 
+        ? completedStories 
+        : [...completedStories, storyId];
+
+      setCompletedStories(updatedCompletedStories);
+
+      const response = await fetch(`${API_BASE_URL}/child-progress`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+        },
+        body: JSON.stringify({
+          childId,
+          gameData: {
+            gameName: "CuentosDivertidos",
+            points: newPoints,
+            completedStories: updatedCompletedStories,
+            lastPlayed: new Date()
+          },
+          totalPoints: newPoints
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al guardar progreso');
+      }
+
+      const data = await response.json();
+      console.log("Progreso guardado:", data);
+    } catch (error) {
+      console.error("Error al guardar progreso:", error);
+    } finally {
+      setSavingProgress(false);
+    }
+  };
 
   // Obtener la edad del niño desde la API
   useEffect(() => {
@@ -53,7 +128,7 @@ const CuentosDivertidos: React.FC = () => {
         console.log("No se encontró ID de niño en localStorage");
         return;
       }
-  
+
       try {
         const response = await fetch(`${API_BASE_URL}/child-profile/${childId}`, {
           headers: {
@@ -64,14 +139,14 @@ const CuentosDivertidos: React.FC = () => {
         if (!response.ok) throw new Error("Error al obtener perfil del niño");
         
         const data = await response.json();
-        console.log("Respuesta completa de la API:", data); // Log completo de la respuesta
+        console.log("Respuesta completa de la API:", data);
         
         if (!data.childProfile?.fechaNacimiento) {
           throw new Error("No se encontró fecha de nacimiento en la respuesta");
         }
         
         const fechaNacimiento = new Date(data.childProfile.fechaNacimiento);
-        console.log("Fecha de nacimiento parseada:", fechaNacimiento); // Log de la fecha parseada
+        console.log("Fecha de nacimiento parseada:", fechaNacimiento);
         
         if (isNaN(fechaNacimiento.getTime())) {
           throw new Error("Fecha de nacimiento no válida");
@@ -85,7 +160,7 @@ const CuentosDivertidos: React.FC = () => {
           edad--;
         }
         
-        console.log("Edad calculada:", edad); // Log de la edad calculada
+        console.log("Edad calculada:", edad);
         setChildAge(edad);
         
       } catch (err) {
@@ -94,11 +169,12 @@ const CuentosDivertidos: React.FC = () => {
         setLoadingProfile(false);
       }
     };
-  
+
     fetchChildProfile();
+    loadProgress();
   }, []);
 
-  // Cargar los cuentos
+  // Cargar los cuentos con puntos aumentados
   useEffect(() => {
     const fetchStories = async () => {
       try {
@@ -120,26 +196,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Quién despertó al león?",
                   options: ["Un elefante", "Un ratón", "Un pájaro", "Un mono"],
                   correctAnswer: "Un ratón",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué prometió el ratón al león?",
                   options: ["Que sería su amigo", "Que lo ayudaría algún día", "Que le traería comida", "Que se iría lejos"],
                   correctAnswer: "Que lo ayudaría algún día",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Cómo ayudó el ratón al león después?",
                   options: ["Llamando a otros animales", "Mordiendo la red", "Buscando al cazador", "Dando agua al león"],
                   correctAnswer: "Mordiendo la red",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-leon-raton_1308-51869.jpg",
               level: 1,
-              ageGroup: 1 // 3-5 años
+              ageGroup: 1
             },
             {
               id: 2,
@@ -157,26 +233,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Por qué se burlaba la liebre de la tortuga?",
                   options: ["Por su caparazón", "Por su lentitud", "Por su edad", "Por su color"],
                   correctAnswer: "Por su lentitud",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué hizo la liebre durante la carrera?",
                   options: ["Se detuvo a comer", "Tomó una siesta", "Se perdió", "Ayudó a la tortuga"],
                   correctAnswer: "Tomó una siesta",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué enseñanza nos deja esta historia?",
                   options: ["La constancia vence a la velocidad", "Las liebres son perezosas", "Las carreras son malas", "Todos deben ser rápidos"],
                   correctAnswer: "La constancia vence a la velocidad",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-liebre-tortuga_1308-51866.jpg",
               level: 2,
-              ageGroup: 2 // 6-8 años
+              ageGroup: 2
             },
             {
               id: 3,
@@ -194,26 +270,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué vio el zorro en el bosque?",
                   options: ["Un manzano", "Un racimo de uvas", "Un arroyo", "Un conejo"],
                   correctAnswer: "Un racimo de uvas",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Por qué el zorro no pudo alcanzar las uvas?",
                   options: ["Estaban muy altas", "Eran muy pequeñas", "Había un perro", "No tenía hambre"],
                   correctAnswer: "Estaban muy altas",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué dijo el zorro al final?",
                   options: ["Volveré mañana", "Las uvas están agrias", "Necesito ayuda", "Qué uvas más ricas"],
                   correctAnswer: "Las uvas están agrias",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/zorro-intentando-alcanzar-uvas-arbol_1308-51868.jpg",
               level: 2,
-              ageGroup: 2 // 6-8 años
+              ageGroup: 2
             },
             {
               id: 4,
@@ -231,26 +307,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué hacía la cigarra en verano?",
                   options: ["Trabajaba", "Cantaba y bailaba", "Almacenaba comida", "Dormía"],
                   correctAnswer: "Cantaba y bailaba",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué hacía la hormiga mientras la cigarra cantaba?",
                   options: ["Almacenaba comida", "Cantaba también", "Dormía", "Se iba de viaje"],
                   correctAnswer: "Almacenaba comida",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué le pasó a la cigarra en invierno?",
                   options: ["Tenía mucha comida", "No tenía qué comer", "Se fue al sur", "Ayudó a la hormiga"],
                   correctAnswer: "No tenía qué comer",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/cigarra-hormiga-dibujos-animados_1308-51870.jpg",
               level: 3,
-              ageGroup: 3 // 9-12 años
+              ageGroup: 3
             },
             {
               id: 5,
@@ -268,26 +344,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué hacía el pastor para divertirse?",
                   options: ["Gritar que venía el lobo", "Contar chistes", "Jugar con las ovejas", "Cantar canciones"],
                   correctAnswer: "Gritar que venía el lobo",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Cuántas veces mintió el pastor?",
                   options: ["Una", "Dos", "Tres", "Ninguna"],
                   correctAnswer: "Dos",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué lección aprendió el pastor?",
                   options: ["Los lobos son peligrosos", "No se debe mentir", "Las ovejas son tontas", "Los aldeanos son amables"],
                   correctAnswer: "No se debe mentir",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/pastor-nino-ovejas-dibujos-animados_1308-51871.jpg",
               level: 1,
-              ageGroup: 1 // 3-5 años
+              ageGroup: 1
             },
             {
               id: 6,
@@ -305,26 +381,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué le pasó a la hormiga en el río?",
                   options: ["Se quedó dormida", "La arrastró la corriente", "Encontró comida", "Vio un pez"],
                   correctAnswer: "La arrastró la corriente",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Cómo ayudó el pájaro a la hormiga?",
                   options: ["Le dio de comer", "La llevó en su pico", "Dejó caer una hoja", "Cantó para calmarla"],
                   correctAnswer: "Dejó caer una hoja",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué enseñanza nos deja esta historia?",
                   options: ["Los pájaros son inteligentes", "Hay que ayudar a los demás", "Las hormigas son valientes", "El bien se devuelve"],
                   correctAnswer: "El bien se devuelve",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/pajaro-hormiga-dibujos-animados_1308-51872.jpg",
               level: 2,
-              ageGroup: 2 // 6-8 años
+              ageGroup: 2
             },
             {
               id: 7,
@@ -342,26 +418,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué llevaba el perro en su boca?",
                   options: ["Un juguete", "Un hueso", "Un palo", "Una piedra"],
                   correctAnswer: "Un hueso",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué vio el perro en el agua?",
                   options: ["Un pez", "Su reflejo", "Otro perro", "Un pájaro"],
                   correctAnswer: "Su reflejo",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué lección aprendió el perro?",
                   options: ["No ser codicioso", "Los puentes son peligrosos", "No ladrar mucho", "Los huesos son pesados"],
                   correctAnswer: "No ser codicioso",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/perro-reflejo-agua-dibujos-animados_1308-51873.jpg",
               level: 1,
-              ageGroup: 1 // 3-5 años
+              ageGroup: 1
             },
             {
               id: 8,
@@ -379,26 +455,26 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Qué discutían el Viento y el Sol?",
                   options: ["Quién era más rápido", "Quién era más fuerte", "Quién era más brillante", "Quién era más viejo"],
                   correctAnswer: "Quién era más fuerte",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué hizo el Viento para ganar?",
                   options: ["Sopló fuerte", "Hizo frío", "Creó una tormenta", "Se calmó"],
                   correctAnswer: "Sopló fuerte",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué enseñanza nos deja esta fábula?",
                   options: ["La fuerza no lo es todo", "El sol siempre gana", "Los abrigos son importantes", "Hay que discutir menos"],
                   correctAnswer: "La fuerza no lo es todo",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/viento-sol-dibujos-animados_1308-51874.jpg",
               level: 3,
-              ageGroup: 3 // 9-12 años
+              ageGroup: 3
             },
             {
               id: 11,
@@ -416,33 +492,32 @@ const CuentosDivertidos: React.FC = () => {
                   text: "¿Por qué los primeros cabritos cayeron al río?",
                   options: ["El puente se rompió", "No supieron ceder", "Tenían miedo", "Eran pequeños"],
                   correctAnswer: "No supieron ceder",
-                  points: 10
+                  points: 20
                 },
                 {
                   id: 2,
                   text: "¿Qué hicieron los cabritos inteligentes?",
                   options: ["Uno dejó pasar al otro", "Saltaron al agua", "Llamaron a ayuda", "Pelearon más fuerte"],
                   correctAnswer: "Uno dejó pasar al otro",
-                  points: 15
+                  points: 30
                 },
                 {
                   id: 3,
                   text: "¿Qué moraleja tiene este cuento?",
                   options: ["La cooperación es mejor que el conflicto", "Los puentes son peligrosos", "Los cabritos son tercos", "Hay que ser rápido"],
                   correctAnswer: "La cooperación es mejor que el conflicto",
-                  points: 20
+                  points: 50
                 }
               ],
               image: "https://img.freepik.com/vector-gratis/dos-cabritos-puente-dibujos-animados_1308-51877.jpg",
               level: 3,
-              ageGroup: 3 // 9-12 años
+              ageGroup: 3
             }
           ];
           setStories(mockStories);
           
-          // Filtrar cuentos según la edad del niño si está disponible
           if (childAge !== null) {
-            let ageGroup = 1; // Por defecto 3-5 años
+            let ageGroup = 1;
             if (childAge >= 6 && childAge <= 8) ageGroup = 2;
             else if (childAge >= 9) ageGroup = 3;
             
@@ -535,22 +610,7 @@ const CuentosDivertidos: React.FC = () => {
       setTimeout(() => setShowConfetti(false), 5000);
     }
     
-    // En una aplicación real, aquí enviaríamos el puntaje al servidor
-    const childId = localStorage.getItem("id_niño");
-    if (childId) {
-      fetch(`${API_BASE_URL}/api/update-points`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("Token")}`
-        },
-        body: JSON.stringify({
-          childId,
-          points: score,
-          game: 'Cuentos Divertidos'
-        })
-      }).catch(err => console.error("Error updating points:", err));
-    }
+    saveProgress(score, selectedStory.id);
   };
 
   const resetGame = () => {
@@ -596,23 +656,17 @@ const CuentosDivertidos: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 p-6">
         <div className="max-w-6xl mx-auto">
           <header className="flex justify-between items-center mb-8">
-          <motion.button
-  whileHover={{ scale: 1.05 }}
-  whileTap={{ scale: 0.95 }}
-  onClick={() => navigate("/child")}
-  className="flex items-center text-xl font-bold text-amber-600"
->
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    className="h-6 w-6 mr-1" 
-    fill="none" 
-    viewBox="0 0 24 24" 
-    stroke="currentColor"
-  >
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-  </svg>
-  Atrás
-</motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate("/child")}
+              className="flex items-center text-xl font-bold text-amber-600"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              Atrás
+            </motion.button>
             <motion.h1
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -623,7 +677,6 @@ const CuentosDivertidos: React.FC = () => {
             <div className="w-10"></div>
           </header>
 
-          {/* Mostrar mensaje personalizado según la edad del niño */}
           {childAge !== null && (
             <motion.div 
               initial={{ opacity: 0 }}
@@ -642,10 +695,8 @@ const CuentosDivertidos: React.FC = () => {
             </motion.div>
           )}
 
-          {/* Mostrar todas las secciones de edad con sus cuentos */}
           {childAge === null && (
             <>
-              {/* Sección 3-5 años */}
               <div className="mb-12">
                 <div className="flex items-center mb-4">
                   <div className="bg-amber-100 px-4 py-2 rounded-full">
@@ -656,12 +707,16 @@ const CuentosDivertidos: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stories.filter(story => story.ageGroup === 1).map((story) => (
-                    <StoryCard key={story.id} story={story} selectStory={selectStory} />
+                    <StoryCard 
+                      key={story.id} 
+                      story={story} 
+                      selectStory={selectStory} 
+                      completed={completedStories.includes(story.id)}
+                    />
                   ))}
                 </div>
               </div>
 
-              {/* Sección 6-8 años */}
               <div className="mb-12">
                 <div className="flex items-center mb-4">
                   <div className="bg-orange-100 px-4 py-2 rounded-full">
@@ -672,12 +727,16 @@ const CuentosDivertidos: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stories.filter(story => story.ageGroup === 2).map((story) => (
-                    <StoryCard key={story.id} story={story} selectStory={selectStory} />
+                    <StoryCard 
+                      key={story.id} 
+                      story={story} 
+                      selectStory={selectStory} 
+                      completed={completedStories.includes(story.id)}
+                    />
                   ))}
                 </div>
               </div>
 
-              {/* Sección 9-12 años */}
               <div className="mb-12">
                 <div className="flex items-center mb-4">
                   <div className="bg-red-100 px-4 py-2 rounded-full">
@@ -688,18 +747,27 @@ const CuentosDivertidos: React.FC = () => {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {stories.filter(story => story.ageGroup === 3).map((story) => (
-                    <StoryCard key={story.id} story={story} selectStory={selectStory} />
+                    <StoryCard 
+                      key={story.id} 
+                      story={story} 
+                      selectStory={selectStory} 
+                      completed={completedStories.includes(story.id)}
+                    />
                   ))}
                 </div>
               </div>
             </>
           )}
 
-          {/* Mostrar cuentos filtrados por edad si childAge no es null */}
           {childAge !== null && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredStories.map((story) => (
-                <StoryCard key={story.id} story={story} selectStory={selectStory} />
+                <StoryCard 
+                  key={story.id} 
+                  story={story} 
+                  selectStory={selectStory} 
+                  completed={completedStories.includes(story.id)}
+                />
               ))}
             </div>
           )}
@@ -720,9 +788,40 @@ const CuentosDivertidos: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 p-6 relative overflow-hidden">
+      {savingProgress && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-xl">
+            <p className="text-lg font-semibold">Guardando progreso...</p>
+          </div>
+        </div>
+      )}
+      
       {showConfetti && <Confetti recycle={false} numberOfPieces={500} colors={['#F59E0B', '#F97316', '#EF4444', '#FBBF24']} />}
       
       <div className="max-w-4xl mx-auto">
+        {/* Barra superior con puntos y tiempo */}
+        <div className="w-full max-w-4xl flex justify-between items-center mb-6">
+          <button 
+            onClick={resetGame}
+            className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-6 py-2 rounded-full font-bold shadow-md hover:shadow-lg transition-all hover:from-amber-500 hover:to-orange-600"
+          >
+            ← Menú
+          </button>
+          
+          <div className="flex items-center space-x-6">
+            <div className="bg-white px-4 py-2 rounded-full shadow-md flex items-center border-2 border-amber-200">
+              <span className="text-yellow-500 text-xl mr-1">⭐</span>
+              <span className="font-bold text-amber-700">{score}</span>
+            </div>
+            <div className="bg-white px-4 py-2 rounded-full shadow-md flex items-center border-2 border-amber-200">
+              <span className="text-red-500 text-xl mr-1">⏱️</span>
+              <span className={`font-bold ${timeLeft < 10 ? "text-red-500" : "text-amber-700"}`}>
+                {timeLeft}s
+              </span>
+            </div>
+          </div>
+        </div>
+
         {/* Encabezado mejorado */}
         <header className="bg-white rounded-2xl shadow-lg p-4 mb-6 border-2 border-amber-200">
           <div className="flex justify-between items-center">
@@ -755,7 +854,6 @@ const CuentosDivertidos: React.FC = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              {/* Contador de puntos */}
               <div className="flex items-center bg-amber-100 px-3 py-1 rounded-full">
                 <span className="text-amber-800 font-bold mr-1">🏆</span>
                 <span className="text-sm font-bold text-amber-800">
@@ -763,7 +861,6 @@ const CuentosDivertidos: React.FC = () => {
                 </span>
               </div>
               
-              {/* Contador de tiempo */}
               {!showResult && (
                 <div className={`flex items-center px-3 py-1 rounded-full ${
                   timeLeft < 15 ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800"
@@ -775,7 +872,6 @@ const CuentosDivertidos: React.FC = () => {
             </div>
           </div>
           
-          {/* Barra de progreso */}
           {!showResult && (
             <div className="mt-3 w-full bg-amber-100 rounded-full h-2.5">
               <div 
@@ -880,6 +976,15 @@ const CuentosDivertidos: React.FC = () => {
               Obtuviste {score} de {selectedStory.questions.reduce((acc, q) => acc + q.points, 0)} puntos.
             </p>
             
+            {completedStories.includes(selectedStory.id) && (
+              <div className="mb-6 bg-green-100 text-green-800 p-3 rounded-lg inline-flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                ¡Ya completaste este cuento anteriormente!
+              </div>
+            )}
+            
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -956,15 +1061,28 @@ const CuentosDivertidos: React.FC = () => {
   );
 };
 
-// Componente de tarjeta de cuento reutilizable
-const StoryCard: React.FC<{ story: Story; selectStory: (story: Story) => void }> = ({ story, selectStory }) => {
+interface StoryCardProps {
+  story: Story;
+  selectStory: (story: Story) => void;
+  completed?: boolean;
+}
+
+const StoryCard: React.FC<StoryCardProps> = ({ story, selectStory, completed = false }) => {
   return (
     <motion.div
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.98 }}
       onClick={() => selectStory(story)}
-      className="bg-white rounded-3xl overflow-hidden shadow-xl cursor-pointer border-4 border-amber-200 hover:border-amber-300 transition-all"
+      className="bg-white rounded-3xl overflow-hidden shadow-xl cursor-pointer border-4 border-amber-200 hover:border-amber-300 transition-all relative"
     >
+      {completed && (
+        <div className="absolute top-2 right-2 bg-green-500 text-white p-1 rounded-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+          </svg>
+        </div>
+      )}
+      
       <img
         src={story.image}
         alt={story.title}
@@ -986,7 +1104,7 @@ const StoryCard: React.FC<{ story: Story; selectStory: (story: Story) => void }>
         </p>
         <div className="flex justify-between items-center">
           <span className="text-sm text-amber-600 font-medium">
-            {story.questions.length} preguntas
+            {story.questions.length} preguntas • {story.questions.reduce((acc, q) => acc + q.points, 0)} pts
           </span>
           <button className="bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow hover:shadow-md transition-all">
             Jugar

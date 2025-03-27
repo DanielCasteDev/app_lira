@@ -17,6 +17,8 @@ import Restaurar from './auth/restaurar';
 import LetrasMagicas from './child/games/letrasmagic';
 import Desafios from './child/games/desafios';
 import NotFound from './notfound';
+import Proximamente from './proximamente';
+
 
 function App() {
   return (
@@ -77,6 +79,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['parent']}>
               <Perfiles />
+            </ProtectedRoute>
+          }
+        />
+          <Route
+          path="/proximamente"
+          element={
+            <ProtectedRoute allowedRoles={['parent']}>
+              <Proximamente />
             </ProtectedRoute>
           }
         />

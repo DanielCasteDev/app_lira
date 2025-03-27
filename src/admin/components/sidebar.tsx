@@ -51,8 +51,8 @@ const Sidebar: React.FC = () => {
               { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
               { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
               { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-              { name: "Historial", icon: <History className="w-5 h-5" />, path: "#historial" },
-              { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "#actividades" },
+              { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
+              { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
             ].map((item, index) => (
               <li key={index}>
                 <a
@@ -128,8 +128,8 @@ const Sidebar: React.FC = () => {
                   { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
                   { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
                   { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-                  { name: "Historial", icon: <History className="w-5 h-5" />, path: "#historial" },
-                  { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "#actividades" },
+                  { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
+                  { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
                 ].map((item, index) => (
                   <li key={index}>
                     <a
