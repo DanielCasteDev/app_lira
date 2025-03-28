@@ -51,7 +51,7 @@ const FormaPalabras: React.FC = () => {
     // Nivel fácil (4 palabras)
     {
       word: "SOL",
-      image: "https://cdn.pixabay.com/photo/2018/01/14/23/12/nature-3082832_640.jpg",
+      image: "https://png.pngtree.com/png-clipart/20230425/original/pngtree-sun-yellow-cartoon-png-image_9096447.png",
       letters: ["S", "O", "L", "N", "T", "R"],
       hint: "Nos da luz y calor durante el día",
       difficulty: "fácil"
@@ -65,14 +65,14 @@ const FormaPalabras: React.FC = () => {
     },
     {
       word: "LUZ",
-      image: "https://cdn.pixabay.com/photo/2013/07/12/18/39/light-153564_640.png",
+      image: "https://img.freepik.com/vector-gratis/lampara-luces-foco-composicion-realista-humo-paisaje-oscuro-lampara-colgante-rayos-particulas-ilustracion-vectorial_1284-75722.jpg?semt=ais_hybrid",
       letters: ["L", "U", "Z", "D", "A", "S"],
       hint: "Lo que enciendes cuando está oscuro",
       difficulty: "fácil"
     },
     {
       word: "MAR",
-      image: "https://cdn.pixabay.com/photo/2013/07/18/10/56/railroad-163518_640.jpg",
+      image: "https://img.freepik.com/foto-gratis/mar-tropical-hermoso-mar-playa-cielo-azul-nube-blanca-copyspace_74190-8663.jpg",
       letters: ["M", "A", "R", "L", "T", "S"],
       hint: "Gran extensión de agua salada",
       difficulty: "fácil"
@@ -81,56 +81,56 @@ const FormaPalabras: React.FC = () => {
     // Nivel medio (8 palabras)
     {
       word: "MESA",
-      image: "https://cdn.pixabay.com/photo/2017/08/01/23/56/table-2565020_640.jpg",
+      image: "https://img.freepik.com/vector-premium/dibujos-animados-mesa_119631-412.jpg",
       letters: ["M", "E", "S", "A", "L", "T", "O"],
       hint: "Mueble con patas donde comes o trabajas",
       difficulty: "medio"
     },
     {
       word: "FLOR",
-      image: "https://cdn.pixabay.com/photo/2018/01/29/07/11/flower-3115353_640.jpg",
+      image: "https://img.freepik.com/foto-gratis/primer-disparo-flor-morada_181624-25863.jpg",
       letters: ["F", "L", "O", "R", "P", "D", "S"],
       hint: "Crece en el jardín y huele bien",
       difficulty: "medio"
     },
     {
       word: "GATO",
-      image: "https://cdn.pixabay.com/photo/2017/02/20/18/03/cat-2083492_640.jpg",
+      image: "https://img.freepik.com/vector-gratis/personaje-dibujos-animados-gatito-ojos-dulces_1308-135596.jpg",
       letters: ["G", "A", "T", "O", "C", "M", "P"],
       hint: "Animal doméstico que maúlla",
       difficulty: "medio"
     },
     {
       word: "CASA",
-      image: "https://cdn.pixabay.com/photo/2016/06/24/10/47/house-1477041_640.jpg",
+      image: "https://images.pexels.com/photos/106399/pexels-photo-106399.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500",
       letters: ["C", "A", "S", "A", "L", "M", "T"],
       hint: "Lugar donde vives con tu familia",
       difficulty: "medio"
     },
     {
       word: "RÍO",
-      image: "https://cdn.pixabay.com/photo/2016/11/29/05/45/columbia-river-1868049_640.jpg",
+      image: "https://media.istockphoto.com/id/1337232523/es/foto/vista-de-%C3%A1ngulo-alto-de-un-lago-y-un-bosque.jpg?s=612x612&w=0&k=20&c=qjJVeU0aGSTZnoeNB7EoJr7lmQhZPoez9kCuXMx3vr8=",
       letters: ["R", "Í", "O", "M", "N", "L"],
       hint: "Corriente de agua que fluye",
       difficulty: "medio"
     },
     {
       word: "SILLA",
-      image: "https://cdn.pixabay.com/photo/2017/08/02/01/01/living-room-2569325_640.jpg",
+      image: "https://reimse.mx/wp-content/uploads/2019/08/TMH67-2-800X800.jpg",
       letters: ["S", "I", "L", "L", "A", "M", "T"],
       hint: "Mueble con respaldo para sentarse",
       difficulty: "medio"
     },
     {
       word: "NUBE",
-      image: "https://cdn.pixabay.com/photo/2014/09/16/18/34/clouds-449919_640.jpg",
+      image: "https://services.meteored.com/img/article/-por-que-las-nubes-no-se-caen--7332-1_1280.jpg",
       letters: ["N", "U", "B", "E", "C", "T", "R"],
       hint: "Flotan en el cielo y pueden traer lluvia",
       difficulty: "medio"
     },
     {
       word: "PATO",
-      image: "https://cdn.pixabay.com/photo/2016/12/05/11/39/fowl-1883138_640.jpg",
+      image: "https://media.istockphoto.com/id/464988959/es/foto/%C3%A1nade-real-con-trazado-de-recorte.jpg?s=612x612&w=0&k=20&c=PAIRHbQK8O5urZ33f94YIMegMvOHEPH0lhwgup57nCA=",
       letters: ["P", "A", "T", "O", "L", "M", "N"],
       hint: "Ave acuática que hace 'cuac'",
       difficulty: "medio"
@@ -139,84 +139,84 @@ const FormaPalabras: React.FC = () => {
     // Nivel difícil (12 palabras)
     {
       word: "VENTANA",
-      image: "https://cdn.pixabay.com/photo/2016/11/29/08/41/apple-1868496_640.jpg",
+      image: "https://static8.depositphotos.com/1041088/887/i/450/depositphotos_8877408-stock-photo-open-window-to-the-back.jpg",
       letters: ["V", "E", "N", "T", "A", "N", "A", "M"],
       hint: "Abertura en la pared para ver afuera",
       difficulty: "difícil"
     },
     {
       word: "JARDÍN",
-      image: "https://cdn.pixabay.com/photo/2016/11/30/15/00/garden-1872997_640.jpg",
+      image: "https://collectionworld.net/modules/ph_simpleblog/covers/281.jpg",
       letters: ["J", "A", "R", "D", "Í", "N", "P", "L", "O"],
       hint: "Espacio con plantas y flores alrededor de una casa",
       difficulty: "difícil"
     },
     {
       word: "TIGRE",
-      image: "https://cdn.pixabay.com/photo/2017/07/24/19/57/tiger-2535888_640.jpg",
+      image: "https://media.istockphoto.com/id/1218694103/es/foto/tigre-real-aislado-en-el-trazado-de-recorte-de-fondo-blanco-incluido-el-tigre-est%C3%A1-mirando-a.jpg?s=612x612&w=0&k=20&c=1KEmnWLMs670FqXaSlB6PhGIIxgdCbuycRq3Qv1slvs=",
       letters: ["T", "I", "G", "R", "E", "A", "L", "O", "N"],
       hint: "Felino grande con rayas negras",
       difficulty: "difícil"
     },
     {
       word: "ESCUELA",
-      image: "https://cdn.pixabay.com/photo/2017/06/09/12/39/board-2387776_640.jpg",
+      image: "https://static6.depositphotos.com/1005738/610/v/450/depositphotos_6105444-stock-illustration-back-to-school-time.jpg",
       letters: ["E", "S", "C", "U", "E", "L", "A", "D", "O"],
       hint: "Lugar donde los niños van a aprender",
       difficulty: "difícil"
     },
     {
       word: "MONTAÑA",
-      image: "https://cdn.pixabay.com/photo/2015/12/01/20/28/mountain-1072828_640.jpg",
+      image: "https://cdn0.geoenciclopedia.com/es/posts/8/0/0/montanas_8_orig.jpg",
       letters: ["M", "O", "N", "T", "A", "Ñ", "A", "L"],
       hint: "Elevación natural del terreno",
       difficulty: "difícil"
     },
     {
       word: "AVIÓN",
-      image: "https://cdn.pixabay.com/photo/2014/05/03/01/02/airplane-336634_640.jpg",
+      image: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Air_india_b747-400_vt-esn_arp.jpg",
       letters: ["A", "V", "I", "Ó", "N", "M", "P", "L", "T"],
       hint: "Vehículo que vuela por los aires",
       difficulty: "difícil"
     },
     {
       word: "PLANETA",
-      image: "https://cdn.pixabay.com/photo/2011/12/13/14/30/earth-11009_640.jpg",
+      image: "https://static.nationalgeographic.es/files/styles/image_3200/public/940.jpg?w=1900&h=1427",
       letters: ["P", "L", "A", "N", "E", "T", "A", "M"],
       hint: "Cuerpo celeste que gira alrededor de una estrella",
       difficulty: "difícil"
     },
     {
       word: "LIBRO",
-      image: "https://cdn.pixabay.com/photo/2015/11/19/21/14/book-1052014_640.jpg",
+      image: "https://cdn.pixabay.com/photo/2015/1https://resizer.glanacion.com/resizer/v2/credito-QS3KNYFVIFHPJLNBGX45PZCZSM.jpg?auth=50f38491ae3193337eeec020a127bcabf02e8cf5fade7ed15dd8923181e7d2a1&width=768&quality=70&smart=false",
       letters: ["L", "I", "B", "R", "O", "P", "A", "D"],
       hint: "Contiene páginas con historias o conocimientos",
       difficulty: "difícil"
     },
     {
       word: "CIELO",
-      image: "https://cdn.pixabay.com/photo/2015/07/05/10/26/tree-832079_640.jpg",
+      image: "https://www.shutterstock.com/image-photo/awesome-sunset-soft-pink-clouds-600nw-2537293181.jpg",
       letters: ["C", "I", "E", "L", "O", "N", "B", "T"],
       hint: "Lo que ves cuando miras hacia arriba en un día despejado",
       difficulty: "difícil"
     },
     {
       word: "ÁRBOL",
-      image: "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_640.jpg",
+      image: "https://upload.wikimedia.org/wikipedia/commons/0/03/Eiche_bei_Graditz.jpg",
       letters: ["Á", "R", "B", "O", "L", "M", "N", "S"],
       hint: "Planta grande con tronco y ramas",
       difficulty: "difícil"
     },
     {
       word: "FUEGO",
-      image: "https://cdn.pixabay.com/photo/2017/01/31/23/42/decorative-2028033_640.png",
+      image: "https://i.pinimg.com/736x/1c/ee/b6/1ceeb6c650802b171763c969bc3a9a79.jpg",
       letters: ["F", "U", "E", "G", "O", "P", "L", "T"],
       hint: "Produce calor y luz cuando algo se quema",
       difficulty: "difícil"
     },
     {
       word: "PUERTA",
-      image: "https://cdn.pixabay.com/photo/2017/02/03/08/12/door-2034431_640.jpg",
+      image: "https://cdn.finstral.com/images/content/1256588_53695_5_C_900_900_0_204734610/finstral-5.jpg",
       letters: ["P", "U", "E", "R", "T", "A", "L", "M"],
       hint: "Entrada o salida de una habitación o edificio",
       difficulty: "difícil"
