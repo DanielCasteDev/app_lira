@@ -1,41 +1,40 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Settings, Users, History, Activity, LogOut, Home } from "lucide-react"; // Importa íconos
-import { updateUserStatus } from "../../auth/utils/Data"; // Importa la función para actualizar el estado
+import { Menu, X, Settings, Users, History, Activity, LogOut, Home, BarChart2 } from "lucide-react"; // Agrega BarChart2
+import { updateUserStatus } from "../../auth/utils/Data";
 
 const Sidebar: React.FC = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false); // Estado para el menú móvil
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Función para manejar el cierre de sesión
   const handleLogout = async () => {
     try {
-      const userId = localStorage.getItem("id_usuario"); // Obtener id_usuario
+      const userId = localStorage.getItem("id_usuario");
+      if (!userId) throw new Error("ID de usuario no encontrado");
 
-      if (!userId) {
-        throw new Error("ID de usuario no encontrado");
-      }
-
-      // Marcar como inactivo en el backend
-      await updateUserStatus(userId, false); // false = inactivo
-
-      // Borrar todo el localStorage
+      await updateUserStatus(userId, false);
       localStorage.clear();
-
-      // Redirigir al usuario a la página de login
-      window.location.href = "/"; // Cambia "/" por la ruta correcta de tu aplicación
+      window.location.href = "/";
     } catch (error) {
       console.error("Error al cerrar sesión:", error);
     }
   };
 
-  
+  const menuItems = [
+    { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
+    { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
+    { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
+    { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
+    { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
+    { name: "Estadísticas", icon: <BarChart2 className="w-5 h-5" />, path: "/estadisticas" }, // Agregado aquí
+  ];
+
   return (
     <>
-      {/* Sidebar para pantallas grandes */}
+      {/* Sidebar grande */}
       <motion.aside
         className="hidden md:flex flex-col w-64 h-screen bg-white shadow-lg fixed z-50"
         initial={{ x: -100 }}
@@ -47,13 +46,7 @@ const Sidebar: React.FC = () => {
         </div>
         <nav className="flex-1 flex flex-col justify-between px-4 py-6">
           <ul className="space-y-2">
-            {[
-              { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
-              { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
-              { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-              { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
-              { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
-            ].map((item, index) => (
+            {menuItems.map((item, index) => (
               <li key={index}>
                 <a
                   href={item.path}
@@ -65,13 +58,11 @@ const Sidebar: React.FC = () => {
               </li>
             ))}
           </ul>
-
-          {/* Separador y opción de Cerrar Sesión */}
           <div className="mt-6 border-t border-gray-200 pt-6">
             <ul>
               <li>
                 <button
-                  onClick={handleLogout} // Usamos onClick en lugar de href
+                  onClick={handleLogout}
                   className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full"
                 >
                   <LogOut className="w-5 h-5" />
@@ -83,7 +74,7 @@ const Sidebar: React.FC = () => {
         </nav>
       </motion.aside>
 
-      {/* Botón para abrir el menú en móviles */}
+      {/* Botón móvil */}
       <button
         className="md:hidden fixed top-6 left-4 p-2 bg-white rounded-lg shadow-lg z-50"
         onClick={toggleMobileMenu}
@@ -91,7 +82,7 @@ const Sidebar: React.FC = () => {
         <Menu className="text-orange-600" />
       </button>
 
-      {/* Menú móvil */}
+      {/* Fondo oscuro móvil */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
@@ -104,6 +95,7 @@ const Sidebar: React.FC = () => {
         )}
       </AnimatePresence>
 
+      {/* Sidebar móvil */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.aside
@@ -124,18 +116,17 @@ const Sidebar: React.FC = () => {
             </div>
             <nav className="flex-1 flex flex-col justify-between px-4 py-6">
               <ul className="space-y-2">
-                {[
-                  { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
-                  { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
-                  { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
-                  { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
-                  { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
-                ].map((item, index) => (
+                {menuItems.map((item, index) => (
                   <li key={index}>
                     <a
                       href={item.path}
                       className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all"
-                      onClick={toggleMobileMenu}
+                      onClick={() => {
+                        toggleMobileMenu();
+                        setTimeout(() => {
+                          window.location.href = item.path;
+                        }, 150);
+                      }}
                     >
                       {item.icon}
                       <span className="ml-3">{item.name}</span>
@@ -143,13 +134,11 @@ const Sidebar: React.FC = () => {
                   </li>
                 ))}
               </ul>
-
-              {/* Separador y opción de Cerrar Sesión */}
               <div className="mt-6 border-t border-gray-200 pt-6">
                 <ul>
                   <li>
                     <button
-                      onClick={handleLogout} // Usamos onClick en lugar de href
+                      onClick={handleLogout}
                       className="flex items-center p-3 text-gray-700 hover:bg-gray-50 hover:text-orange-600 rounded-lg transition-all w-full"
                     >
                       <LogOut className="w-5 h-5" />

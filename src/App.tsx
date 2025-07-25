@@ -18,6 +18,7 @@ import LetrasMagicas from './child/games/letrasmagic';
 import Desafios from './child/games/desafios';
 import NotFound from './notfound';
 import Proximamente from './proximamente';
+import Estadisticas from './admin/pages/stats';
 
 
 function App() {
@@ -53,6 +54,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <UserAdm />
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/estadisticas"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <Estadisticas />
             </ProtectedRoute>
           }
         />

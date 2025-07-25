@@ -1,5 +1,5 @@
 import React from "react";
-import Sidebar from "./components/sidebar"; 
+import Sidebar from "./components/sidebar";
 
 const Dashboard: React.FC = () => {
   return (
@@ -46,6 +46,7 @@ const Dashboard: React.FC = () => {
             </button>
           </div>
         </div>
+
       </main>
     </div>
   );
