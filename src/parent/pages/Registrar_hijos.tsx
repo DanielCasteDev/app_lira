@@ -242,7 +242,7 @@ const RegistrarHijos: React.FC = () => {
                                 {/* Nombre de Usuario y Contraseña */}
                                 <motion.div className="space-y-4" variants={containerVariants}>
                                     {[
-                                        { label: 'Nombre de Usuario', value: username, setter: setUsername, placeholder: 'Crea un nombre de usuario' },
+                                        { label: 'Correo de Usuario', value: username, setter: setUsername, placeholder: 'Crea un correo de usuario' },
                                         { label: 'Contraseña', value: password, setter: setPassword, placeholder: 'Crea una contraseña', type: 'password' },
                                     ].map((field, index) => (
                                         <motion.div key={index} variants={itemVariants}>
