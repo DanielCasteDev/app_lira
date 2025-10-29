@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { API_BASE_URL } from '../../api/api_service';
+import { saveProgressWithSync, getProfileWithCache } from '../../utils/syncService';
 
 interface WordChallenge {
   word: string;
@@ -223,7 +223,7 @@ const FormaPalabras: React.FC = () => {
     }
   ];
 
-  // Función para guardar el progreso en la BD
+  // Función para guardar el progreso (con soporte offline)
   const saveProgress = async (newPoints: number, levelsCompleted: number) => {
     setSavingProgress(true);
     const childId = localStorage.getItem("id_niño");
@@ -233,31 +233,23 @@ const FormaPalabras: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/child-progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+      const result = await saveProgressWithSync(
+        childId,
+        {
+          gameName: "FormaPalabras",
+          points: newPoints,
+          levelsCompleted,
+          highestDifficulty: difficulty,
+          lastPlayed: new Date().toISOString()
         },
-        body: JSON.stringify({
-          childId,
-          gameData: {
-            gameName: "FormaPalabras",
-            points: newPoints,
-            levelsCompleted,
-            highestDifficulty: difficulty,
-            lastPlayed: new Date()
-          },
-          totalPoints: newPoints
-        })
-      });
+        newPoints
+      );
 
-      if (!response.ok) {
-        throw new Error('Error al guardar progreso');
+      if (result.offline) {
+        console.log('📴 Progreso guardado localmente, se sincronizará cuando haya conexión');
+      } else {
+        console.log('✅ Progreso sincronizado en tiempo real');
       }
-
-      const data = await response.json();
-      console.log("Progreso guardado:", data);
     } catch (error) {
       console.error("Error al guardar progreso:", error);
     } finally {
@@ -265,7 +257,7 @@ const FormaPalabras: React.FC = () => {
     }
   };
 
-  // Efecto para obtener la edad del niño
+  // Efecto para obtener la edad del niño (con soporte de caché offline)
   useEffect(() => {
     const fetchChildProfile = async () => {
       const childId = localStorage.getItem("id_niño");
@@ -276,18 +268,16 @@ const FormaPalabras: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/child-profile/${childId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem("Token")}`
-          }
-        });
+        const data = await getProfileWithCache(childId);
         
-        if (!response.ok) throw new Error("Error al obtener perfil del niño");
-        
-        const data = await response.json();
-        
-        if (!data.childProfile?.fechaNacimiento) {
+        if (!data || !data.childProfile?.fechaNacimiento) {
           throw new Error("No se encontró fecha de nacimiento en la respuesta");
+        }
+
+        if (data.fromCache) {
+          console.log('📦 Perfil cargado desde caché local');
+        } else {
+          console.log('✅ Perfil obtenido de la API');
         }
         
         const fechaNacimiento = new Date(data.childProfile.fechaNacimiento);

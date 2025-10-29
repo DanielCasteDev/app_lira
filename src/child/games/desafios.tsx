@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { saveGameData, getGameData } from '../../utils/indexedDB';
 
 type ChallengeDifficulty = 'principiante' | 'aprendiz' | 'maestro';
 
@@ -191,6 +192,45 @@ const juegos = [
 const DesafiosLira: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<ChallengeDifficulty | 'todos'>('todos');
+  const [challenges, setChallenges] = useState<Challenge[]>(CHALLENGES);
+
+  // Cargar desafíos completados desde IndexedDB
+  useEffect(() => {
+    const loadCompletedChallenges = async () => {
+      try {
+        const savedData = await getGameData('desafiosCompleted');
+        if (savedData) {
+          const completedIds = savedData as number[];
+          const updatedChallenges = CHALLENGES.map(challenge => ({
+            ...challenge,
+            completed: completedIds.includes(challenge.id)
+          }));
+          setChallenges(updatedChallenges);
+          console.log('📦 Desafíos cargados desde caché local');
+        }
+      } catch (error) {
+        console.error('Error al cargar desafíos:', error);
+      }
+    };
+
+    loadCompletedChallenges();
+  }, []);
+
+  // Guardar cuando un desafío se completa
+  const markChallengeAsCompleted = async (challengeId: number) => {
+    try {
+      const updatedChallenges = challenges.map(ch =>
+        ch.id === challengeId ? { ...ch, completed: true } : ch
+      );
+      setChallenges(updatedChallenges);
+
+      const completedIds = updatedChallenges.filter(ch => ch.completed).map(ch => ch.id);
+      await saveGameData('desafiosCompleted', completedIds);
+      console.log('✅ Desafío marcado como completado');
+    } catch (error) {
+      console.error('Error al guardar desafío:', error);
+    }
+  };
 
   const getDifficultyColor = (difficulty: ChallengeDifficulty) => {
     switch (difficulty) {
@@ -200,7 +240,7 @@ const DesafiosLira: React.FC = () => {
     }
   };
 
-  const filteredChallenges = CHALLENGES.filter(challenge => 
+  const filteredChallenges = challenges.filter(challenge => 
     (selectedGame === null || challenge.gameType === selectedGame) &&
     (selectedDifficulty === 'todos' || challenge.difficulty === selectedDifficulty)
   );
@@ -290,9 +330,15 @@ const DesafiosLira: React.FC = () => {
                   <span className="font-bold text-amber-500">{challenge.points} pts</span>
                 </div>
                 <button 
-                  className="bg-gradient-to-r from-amber-400 to-orange-500 text-white px-4 py-2 rounded-full text-sm font-bold hover:scale-105 transition-all"
+                  onClick={() => !challenge.completed && markChallengeAsCompleted(challenge.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-bold hover:scale-105 transition-all ${
+                    challenge.completed 
+                      ? 'bg-green-500 text-white cursor-default'
+                      : 'bg-gradient-to-r from-amber-400 to-orange-500 text-white'
+                  }`}
+                  disabled={challenge.completed}
                 >
-                  Comenzar
+                  {challenge.completed ? '✓ Completado' : 'Comenzar'}
                 </button>
               </div>
             </motion.div>

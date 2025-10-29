@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { API_BASE_URL } from '../../api/api_service';
+import { saveProgressWithSync, getProfileWithCache } from '../../utils/syncService';
 
 // Definición de tipos
 type TipoItem = "animal" | "objeto";
@@ -62,41 +62,36 @@ const VocalesJuego: React.FC = () => {
     ]
   };
 
-  // Función para guardar el progreso
+  // Función para guardar el progreso (con soporte offline)
   const saveProgress = async (newPoints: number, levelsCompleted: number) => {
     setSavingProgress(true);
     try {
       const childId = localStorage.getItem("id_niño");
-      const token = localStorage.getItem("Token");
   
-      if (!childId || !token || !dificultad) {
+      if (!childId || !dificultad) {
         throw new Error("Faltan credenciales de usuario o dificultad no definida");
       }
   
-      const response = await fetch(`${API_BASE_URL}/child-progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      // Usar el servicio de sincronización que maneja offline/online
+      const result = await saveProgressWithSync(
+        childId,
+        {
+          gameName: "VocalesJuego",
+          points: newPoints,
+          levelsCompleted,
+          highestDifficulty: dificultad === 1 ? 'fácil' : dificultad === 2 ? 'medio' : 'difícil',
+          lastPlayed: new Date().toISOString()
         },
-        body: JSON.stringify({
-          childId,
-          gameData: {
-            gameName: "VocalesJuego",
-            points: newPoints,
-            levelsCompleted,
-            highestDifficulty: dificultad === 1 ? 'fácil' : dificultad === 2 ? 'medio' : 'difícil',
-            lastPlayed: new Date().toISOString()
-          },
-          totalPoints: newPoints
-        })
-      });
-  
-      if (!response.ok) {
-        throw new Error("Error al guardar progreso");
+        newPoints
+      );
+
+      if (result.offline) {
+        console.log('📴 Progreso guardado localmente, se sincronizará cuando haya conexión');
+      } else {
+        console.log('✅ Progreso sincronizado en tiempo real');
       }
-  
-      return await response.json();
+
+      return result;
     } catch (error) {
       console.error("Error al guardar progreso:", error);
       throw error;
@@ -105,7 +100,7 @@ const VocalesJuego: React.FC = () => {
     }
   };
 
-  // Obtener perfil del niño
+  // Obtener perfil del niño (con soporte de caché offline)
   useEffect(() => {
     const fetchChildProfile = async () => {
       const childId = localStorage.getItem("id_niño");
@@ -115,18 +110,17 @@ const VocalesJuego: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/child-profile/${childId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem("Token")}`
-          }
-        });
+        // Usar el servicio de sincronización que maneja caché
+        const data = await getProfileWithCache(childId);
         
-        if (!response.ok) throw new Error("Error al obtener perfil del niño");
-        
-        const data = await response.json();
-        
-        if (!data.childProfile?.fechaNacimiento) {
+        if (!data || !data.childProfile?.fechaNacimiento) {
           throw new Error("No se encontró fecha de nacimiento");
+        }
+
+        if (data.fromCache) {
+          console.log('📦 Perfil cargado desde caché local');
+        } else {
+          console.log('✅ Perfil obtenido de la API');
         }
         
         const fechaNacimiento = new Date(data.childProfile.fechaNacimiento);
@@ -187,8 +181,9 @@ const VocalesJuego: React.FC = () => {
     hablarNombre(itemAleatorio.nombre);
 
     // Generar opciones basadas en la dificultad
-    let vocalesDisponibles = ["A", "E", "I", "O"];
-    if (dificultad >= 2) vocalesDisponibles.push("U");
+    const vocalesDisponibles = dificultad >= 2 
+      ? ["A", "E", "I", "O", "U"] 
+      : ["A", "E", "I", "O"];
     
     const vocalesIncorrectas = vocalesDisponibles.filter(v => v !== itemAleatorio.vocal);
     const opcionesMezcladas = [
@@ -208,6 +203,7 @@ const VocalesJuego: React.FC = () => {
     if (dificultad !== null && !loadingProfile) {
       iniciarPregunta();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dificultad, loadingProfile]);
 
   const verificarRespuesta = (vocal: string) => {

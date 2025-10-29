@@ -2,7 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Confetti from "react-confetti";
-import { API_BASE_URL } from '../../api/api_service';
+import { saveProgressWithSync, getProfileWithCache } from '../../utils/syncService';
+import { cacheStory, getCachedStories } from '../../utils/indexedDB';
 
 interface Story {
   id: number;
@@ -43,35 +44,35 @@ const CuentosDivertidos: React.FC = () => {
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingProgress, setSavingProgress] = useState(false);
   const [completedStories, setCompletedStories] = useState<number[]>([]);
-  const [, setProgressData] = useState<any>(null);
+  const [, setProgressData] = useState<{progress?: {CuentosDivertidos?: {completedStories?: number[]}}} | null>(null);
 
-  // Función para cargar el progreso guardado
+  // Función para cargar el progreso guardado (con soporte offline)
   const loadProgress = async () => {
     const childId = localStorage.getItem("id_niño");
     if (!childId) return;
 
     try {
-      const response = await fetch(`${API_BASE_URL}/child-progress/${childId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+      // Intentar cargar desde caché primero si estamos offline
+      const data = await getProfileWithCache(childId);
+      
+      if (data) {
+        setProgressData(data);
+        
+        // Marcar cuentos completados
+        if (data.progress?.CuentosDivertidos?.completedStories) {
+          setCompletedStories(data.progress.CuentosDivertidos.completedStories);
         }
-      });
 
-      if (!response.ok) throw new Error('Error al cargar progreso');
-      
-      const data = await response.json();
-      setProgressData(data);
-      
-      // Marcar cuentos completados
-      if (data.progress?.CuentosDivertidos?.completedStories) {
-        setCompletedStories(data.progress.CuentosDivertidos.completedStories);
+        if (data.fromCache) {
+          console.log('📦 Progreso cargado desde caché local');
+        }
       }
     } catch (error) {
       console.error("Error al cargar progreso:", error);
     }
   };
 
-  // Función para guardar el progreso en la BD
+  // Función para guardar el progreso (con soporte offline)
   const saveProgress = async (newPoints: number, storyId: number) => {
     setSavingProgress(true);
     const childId = localStorage.getItem("id_niño");
@@ -88,30 +89,22 @@ const CuentosDivertidos: React.FC = () => {
 
       setCompletedStories(updatedCompletedStories);
 
-      const response = await fetch(`${API_BASE_URL}/child-progress`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("Token")}`
+      const result = await saveProgressWithSync(
+        childId,
+        {
+          gameName: "CuentosDivertidos",
+          points: newPoints,
+          completedStories: updatedCompletedStories,
+          lastPlayed: new Date().toISOString()
         },
-        body: JSON.stringify({
-          childId,
-          gameData: {
-            gameName: "CuentosDivertidos",
-            points: newPoints,
-            completedStories: updatedCompletedStories,
-            lastPlayed: new Date()
-          },
-          totalPoints: newPoints
-        })
-      });
+        newPoints
+      );
 
-      if (!response.ok) {
-        throw new Error('Error al guardar progreso');
+      if (result.offline) {
+        console.log('📴 Progreso guardado localmente, se sincronizará cuando haya conexión');
+      } else {
+        console.log('✅ Progreso sincronizado en tiempo real');
       }
-
-      const data = await response.json();
-      console.log("Progreso guardado:", data);
     } catch (error) {
       console.error("Error al guardar progreso:", error);
     } finally {
@@ -119,7 +112,7 @@ const CuentosDivertidos: React.FC = () => {
     }
   };
 
-  // Obtener la edad del niño desde la API
+  // Obtener la edad del niño (con soporte de caché offline)
   useEffect(() => {
     const fetchChildProfile = async () => {
       const childId = localStorage.getItem("id_niño");
@@ -130,23 +123,19 @@ const CuentosDivertidos: React.FC = () => {
       }
 
       try {
-        const response = await fetch(`${API_BASE_URL}/child-profile/${childId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem("Token")}`
-          }
-        });
+        const data = await getProfileWithCache(childId);
         
-        if (!response.ok) throw new Error("Error al obtener perfil del niño");
-        
-        const data = await response.json();
-        console.log("Respuesta completa de la API:", data);
-        
-        if (!data.childProfile?.fechaNacimiento) {
+        if (!data || !data.childProfile?.fechaNacimiento) {
           throw new Error("No se encontró fecha de nacimiento en la respuesta");
+        }
+
+        if (data.fromCache) {
+          console.log('📦 Perfil cargado desde caché local');
+        } else {
+          console.log('✅ Perfil obtenido de la API');
         }
         
         const fechaNacimiento = new Date(data.childProfile.fechaNacimiento);
-        console.log("Fecha de nacimiento parseada:", fechaNacimiento);
         
         if (isNaN(fechaNacimiento.getTime())) {
           throw new Error("Fecha de nacimiento no válida");
@@ -174,11 +163,34 @@ const CuentosDivertidos: React.FC = () => {
     loadProgress();
   }, []);
 
-  // Cargar los cuentos con puntos aumentados
+  // Cargar los cuentos con puntos aumentados (con soporte de caché)
   useEffect(() => {
     const fetchStories = async () => {
       try {
-        setTimeout(() => {
+        // Intentar cargar desde caché primero
+        const cachedStories = await getCachedStories();
+        
+        if (cachedStories.length > 0) {
+          console.log('📦 Cuentos cargados desde caché local');
+          const typedStories = cachedStories as unknown as Story[];
+          setStories(typedStories);
+          
+          if (childAge !== null) {
+            let ageGroup = 1;
+            if (childAge >= 6 && childAge <= 8) ageGroup = 2;
+            else if (childAge >= 9) ageGroup = 3;
+            
+            setFilteredStories(typedStories.filter(story => story.ageGroup === ageGroup));
+          } else {
+            setFilteredStories(typedStories);
+          }
+          
+          setLoading(false);
+          return;
+        }
+
+        // Si no hay caché, crear los datos mock y guardarlos
+        setTimeout(async () => {
           const mockStories: Story[] = [
             {
               id: 1,
@@ -516,6 +528,15 @@ const CuentosDivertidos: React.FC = () => {
           ];
           setStories(mockStories);
           
+          // Guardar cuentos en caché
+          for (const story of mockStories) {
+            await cacheStory({
+              ...story,
+              cachedAt: new Date().toISOString()
+            });
+          }
+          console.log('✅ Cuentos guardados en caché local');
+          
           if (childAge !== null) {
             let ageGroup = 1;
             if (childAge >= 6 && childAge <= 8) ageGroup = 2;
@@ -528,7 +549,7 @@ const CuentosDivertidos: React.FC = () => {
           
           setLoading(false);
         }, 1500);
-      } catch (err) {
+      } catch {
         setError("Error al cargar los cuentos. Por favor intenta más tarde.");
         setLoading(false);
       }
@@ -550,6 +571,7 @@ const CuentosDivertidos: React.FC = () => {
     } else if (timeLeft === 0 && !gameCompleted) {
       finishGame();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeLeft, showQuestions, gameCompleted]);
 
   const selectStory = (story: Story) => {

@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SpeedInsights } from "@vercel/speed-insights/react"
 import { ProtectedRoute } from './components/ProtectedRoute';
+import NetworkStatus from './components/NetworkStatus';
 import Login from './auth/login';
 import Registro from './auth/registro';
 import Olvidaste from './auth/olvidaste';
@@ -25,6 +26,7 @@ function App() {
   return (
     <Router>
       <SpeedInsights/>
+      <NetworkStatus />
       <Routes>
         {/* Rutas públicas (sin protección) */}
         <Route path="/" element={<Login />} />

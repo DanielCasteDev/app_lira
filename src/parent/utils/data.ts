@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../../api/api_service';
+import { fetchChildrenWithCache, type CachedDataResponse } from '../../utils/parentCacheService';
 
 export const registerChild = async (
     nombre: string,
@@ -79,4 +80,28 @@ export const fetchChildren = async (): Promise<Child[]> => {
         console.error('Error al obtener los hijos:', error);
         throw error;
     }
+};
+
+/**
+ * Obtiene los hijos con soporte de caché offline
+ * Retorna tanto los datos como información sobre el caché
+ */
+export const fetchChildrenWithCacheInfo = async (): Promise<CachedDataResponse<Child[]>> => {
+    const parentId = localStorage.getItem("id");
+    const token = localStorage.getItem("Token");
+
+    if (!parentId) {
+        throw new Error("No se encontró el ID del padre.");
+    }
+
+    if (!token) {
+        throw new Error("No se encontró el token de autenticación.");
+    }
+
+    const result = await fetchChildrenWithCache(parentId, token, API_BASE_URL);
+    
+    return {
+        ...result,
+        data: result.data as Child[]
+    };
 };

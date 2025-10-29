@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import Sidebar from "../components/sidebar_dad";
 import Navbar from "../components/navbar_superior";
-import { fetchChildren } from "../utils/data";
+import { fetchChildren, fetchChildrenWithCacheInfo } from "../utils/data";
+import { showCacheWarning } from "../../utils/parentCacheService";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FaUser, FaBirthdayCake, FaIdBadge, 
@@ -57,23 +58,55 @@ const Progreso: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [cacheInfo, setCacheInfo] = useState<{ fromCache: boolean; isStale: boolean; message: string } | null>(null);
 
   useEffect(() => {
     const getChildren = async () => {
       try {
         setLoading(true);
-        const data = await fetchChildren();
         
-        const childrenWithLevels = data.map(child => ({
-            ...child,
-            totalPoints: child.totalPoints || 0, // Valor por defecto
-            level: Math.floor((child.totalPoints || 0) / 500) + 1
-          }));
+        // Intentar con caché primero
+        try {
+          const result = await fetchChildrenWithCacheInfo();
           
-        setChildren(childrenWithLevels);
-        setError(null);
-      } catch (err: any) {
-        setError(err.message);
+          const childrenWithLevels = result.data.map(child => ({
+              ...child,
+              totalPoints: child.totalPoints || 0,
+              level: Math.floor((child.totalPoints || 0) / 500) + 1
+            }));
+            
+          setChildren(childrenWithLevels);
+          
+          // Actualizar info del caché
+          if (result.fromCache) {
+            setCacheInfo({
+              fromCache: true,
+              isStale: result.isStale,
+              message: showCacheWarning(result.isStale, result.cachedAt)
+            });
+          } else {
+            setCacheInfo(null);
+          }
+          
+          setError(null);
+        } catch {
+          // Si falla el caché, intentar método tradicional
+          console.log('Intentando método tradicional...');
+          const data = await fetchChildren();
+          
+          const childrenWithLevels = data.map(child => ({
+              ...child,
+              totalPoints: child.totalPoints || 0,
+              level: Math.floor((child.totalPoints || 0) / 500) + 1
+            }));
+            
+          setChildren(childrenWithLevels);
+          setCacheInfo(null);
+          setError(null);
+        }
+      } catch (err: unknown) {
+        const errorMessage = err instanceof Error ? err.message : 'Error desconocido';
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -160,6 +193,34 @@ const Progreso: React.FC = () => {
               Total niños: {children.length}
             </div>
           </div>
+
+          {/* Banner de caché */}
+          {cacheInfo && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={`mb-4 p-4 rounded-lg border-l-4 ${
+                cacheInfo.isStale 
+                  ? 'bg-yellow-50 border-yellow-500 text-yellow-800' 
+                  : 'bg-blue-50 border-blue-500 text-blue-800'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <span className="text-2xl">{cacheInfo.isStale ? '⚠️' : '📦'}</span>
+                  <span className="font-medium">{cacheInfo.message}</span>
+                </div>
+                {cacheInfo.isStale && (
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm font-medium"
+                  >
+                    🔄 Intentar actualizar
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
