@@ -3,7 +3,6 @@ import Sidebar from "../components/sidebar";
 import {
   sendNotificationToUser,
   sendNotificationToMany,
-  getUsersWithSubscriptions,
   getAllUsers,
 } from "../../utils/notificationService";
 import { Bell, Send, Users, CheckCircle, AlertCircle, Loader } from "lucide-react";
