@@ -1,10 +1,12 @@
 import React from "react";
 import Sidebar from "./components/sidebar";
+import NotificationPrompt from "../components/NotificationPrompt";
 
 const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Sidebar />
+      <NotificationPrompt />
 
       <main className="md:ml-64 p-6 pt-20 md:pt-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Bienvenido al Dashboard</h2>

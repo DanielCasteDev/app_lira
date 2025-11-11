@@ -342,6 +342,72 @@ self.addEventListener('message', event => {
   }
 });
 
+/**
+ * Manejo de notificaciones push
+ */
+self.addEventListener('push', event => {
+  console.log('[SW] Push notification received');
+  
+  let notificationData = {
+    title: 'LIRA',
+    body: 'Tienes una nueva notificación',
+    icon: '/lira.png',
+    badge: '/lira.png',
+    data: {},
+  };
+
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      notificationData = {
+        title: data.title || notificationData.title,
+        body: data.body || notificationData.body,
+        icon: data.icon || notificationData.icon,
+        badge: data.badge || notificationData.badge,
+        data: data.data || notificationData.data,
+      };
+    } catch (error) {
+      console.error('[SW] Error al parsear datos de la notificación:', error);
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(notificationData.title, {
+      body: notificationData.body,
+      icon: notificationData.icon,
+      badge: notificationData.badge,
+      data: notificationData.data,
+      vibrate: [200, 100, 200],
+      tag: 'lira-notification',
+      requireInteraction: false,
+    })
+  );
+});
+
+/**
+ * Manejo de clics en notificaciones
+ */
+self.addEventListener('notificationclick', event => {
+  console.log('[SW] Notification click received');
+  
+  event.notification.close();
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      // Si hay una ventana abierta, enfocarla
+      for (const client of clientList) {
+        if (client.url === '/' && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      // Si no hay ventana abierta, abrir una nueva
+      if (clients.openWindow) {
+        return clients.openWindow('/');
+      }
+    })
+  );
+});
+
 console.log('[SW] Service Worker cargado');
 
 

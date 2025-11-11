@@ -9,6 +9,7 @@ import Admin from './admin/Dashboard.ad';
 import Parent from './parent/Dashboard.parent';
 import ConfigAdm from './admin/pages/config';
 import UserAdm from './admin/pages/users';
+import NotificationsAdm from './admin/pages/notifications';
 import Registrar_Hijos from './parent/pages/Registrar_hijos';
 import Cuentos from './child/games/Cuentos';
 import Palabras from './child/games/Palabras';
@@ -56,6 +57,14 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={['admin']}>
               <UserAdm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <NotificationsAdm />
             </ProtectedRoute>
           }
         />

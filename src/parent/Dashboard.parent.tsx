@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion"; // Importa Framer Motion
 import Sidebar from "./components/sidebar_dad"; // Importa el componente Sidebar
 import Navbar from "./components/navbar_superior"; // Importa el componente Navbar
+import NotificationPrompt from "../components/NotificationPrompt";
 import { FaBook, FaTasks, FaGamepad, FaChartLine } from "react-icons/fa"; // Importa iconos
 
 const Dashboard: React.FC = () => {
@@ -23,6 +24,7 @@ const Dashboard: React.FC = () => {
     <div className="min-h-screen flex bg-gray-50 text-gray-900">
       {/* Sidebar */}
       <Sidebar />
+      <NotificationPrompt />
 
       {/* Contenido principal */}
       <div className="flex-1 flex flex-col ml-0 md:ml-64">

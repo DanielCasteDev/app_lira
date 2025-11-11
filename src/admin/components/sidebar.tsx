@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Settings, Users, History, Activity, LogOut, Home, BarChart2 } from "lucide-react"; // Agrega BarChart2
+import { Menu, X, Settings, Users, History, Activity, LogOut, Home, BarChart2, Bell } from "lucide-react"; // Agrega BarChart2 y Bell
 import { updateUserStatus } from "../../auth/utils/Data";
 
 const Sidebar: React.FC = () => {
@@ -27,6 +27,7 @@ const Sidebar: React.FC = () => {
     { name: "Home", icon: <Home className="w-5 h-5" />, path: "/admin" },
     { name: "Configuración", icon: <Settings className="w-5 h-5" />, path: "/config" },
     { name: "Usuarios", icon: <Users className="w-5 h-5" />, path: "/users" },
+    { name: "Notificaciones", icon: <Bell className="w-5 h-5" />, path: "/notifications" },
     { name: "Historial", icon: <History className="w-5 h-5" />, path: "/proximamente" },
     { name: "Actividades", icon: <Activity className="w-5 h-5" />, path: "/proximamente" },
     { name: "Estadísticas", icon: <BarChart2 className="w-5 h-5" />, path: "/estadisticas" }, // Agregado aquí

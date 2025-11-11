@@ -76,7 +76,7 @@ export const useAuthMiddleware = (): void => {
 
   function hasAccess(role: string | null, path: string): boolean {
     const roleRoutes: Record<string, string[]> = {
-      admin: ['/admin', '/config', '/users'],
+      admin: ['/admin', '/config', '/users', '/notifications', '/estadisticas'],
       parent: ['/parent', '/Registrar_hijos', '/perfiles'],
       child: ['/child', '/palabras', '/cuentos', '/letras', '/desafios'],
     };

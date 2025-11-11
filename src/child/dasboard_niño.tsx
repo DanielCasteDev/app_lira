@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { API_BASE_URL } from '../api/api_service';
 import ProfileBadge from './components/perfil';
+import NotificationPrompt from '../components/NotificationPrompt';
 
 // Definición de tipos mejorada
 interface ChildProfile {
@@ -202,6 +203,7 @@ const Inicio: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-100 flex flex-col items-center p-6 pb-16">
+      <NotificationPrompt />
       {/* Header */}
       <div className="w-full max-w-7xl flex justify-between items-center mb-8">
         <motion.div 
